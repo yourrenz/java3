@@ -64,6 +64,7 @@ body{background:#000;overflow:hidden;font-family:'Cinzel',serif;cursor:none;}
   color:#cc9fff;padding:7px 15px;border-radius:6px;
   font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.12em;
   cursor:pointer;transition:all .22s;backdrop-filter:blur(10px);
+  pointer-events:all;
 }
 .btn:hover{border-color:#b060ff;box-shadow:0 0 16px #b060ff30;color:#ecd8ff;}
 .btn.on{border-color:#40d0ff;color:#40d0ff;box-shadow:0 0 14px #40d0ff30;}
@@ -72,10 +73,11 @@ body{background:#000;overflow:hidden;font-family:'Cinzel',serif;cursor:none;}
 .spell-row{display:flex;gap:7px;}
 .sp{
   width:38px;height:38px;border-radius:50%;
-  border:2px solid #fff14;background:rgba(6,1,15,.88);
+  border:2px solid #6060aa44;background:rgba(6,1,15,.88);
   cursor:pointer;font-size:1rem;
   display:flex;align-items:center;justify-content:center;
   transition:all .22s;backdrop-filter:blur(8px);
+  pointer-events:all;
 }
 .sp:hover{transform:scale(1.12);}
 .sp.on{box-shadow:0 0 0 2px var(--sc),0 0 18px var(--sc);}
@@ -87,8 +89,8 @@ body{background:#000;overflow:hidden;font-family:'Cinzel',serif;cursor:none;}
 .sp[data-s="void"]    {--sc:#ff40a0;}
 
 /* ── YOĞUNLUk ── */
-#int-wrap{display:flex;align-items:center;gap:5px;color:#806099;font-size:.6rem;letter-spacing:.1em;}
-#intensity{width:70px;accent-color:#b060ff;}
+#int-wrap{display:flex;align-items:center;gap:5px;color:#806099;font-size:.6rem;letter-spacing:.1em;pointer-events:all;}
+#intensity{width:70px;accent-color:#b060ff;cursor:pointer;}
 
 /* ── YÜKLEME EKRANI ── */
 #loading{
@@ -106,7 +108,10 @@ body{background:#000;overflow:hidden;font-family:'Cinzel',serif;cursor:none;}
   box-shadow:0 0 30px #b060ff,0 0 60px #8030cc;
   animation:lorb 1.4s ease-in-out infinite;
 }
-@keyframes lorb{0%,100%{transform:scale(1)}50%{transform:scale(1.24)}}
+@keyframes lorb{
+  0%,100%{transform:scale(1);}
+  50%{transform:scale(1.24);}
+}
 </style>
 </head>
 <body>
@@ -148,7 +153,7 @@ body{background:#000;overflow:hidden;font-family:'Cinzel',serif;cursor:none;}
   <p id="load-msg">MEDİAPİPE YÜKLENİYOR...</p>
 </div>
 
-<!-- MediaPipe Tasks Vision (GestureRecognizer + Landmarks) -->
+<!-- MediaPipe Tasks Vision (GestureRecognizer) -->
 <script type="importmap">
 {
   "imports": {
@@ -184,21 +189,21 @@ resize();
 window.addEventListener('resize', resize);
 
 // ══════════════════════════════════════════════════════════════
-// BÜYÜ PALETLERİ
+// BÜYÜ PALETLERİ (FİX: tüm renkler complete)
 // ══════════════════════════════════════════════════════════════
 const PAL = {
-  arcane:   {r:180,g:80, b:255, core:[255,220,255], smoke:[100,30,160],  ember:[220,130,255]},
-  electric: {r:40, g:200,b:255, core:[255,255,255], smoke:[20,80,150],   ember:[100,210,255]},
-  fire:     {r:255,g:75, b:20,  core:[255,240,160], smoke:[70,15,8],     ember:[255,150,30] },
+  arcane:   {r:180,g:96, b:255, core:[255,220,255], smoke:[100,30,160],  ember:[220,130,255]},
+  electric: {r:64, g:192,b:255, core:[255,255,255], smoke:[20,80,150],   ember:[100,210,255]},
+  fire:     {r:255,g:95, b:20,  core:[255,240,160], smoke:[70,15,8],     ember:[255,150,30] },
   ice:      {r:100,g:220,b:255, core:[220,248,255], smoke:[30,70,110],   ember:[160,235,255]},
-  divine:   {r:255,g:195,b:50,  core:[255,255,210], smoke:[110,70,15],   ember:[255,225,110]},
-  void:     {r:255,g:35, b:155, core:[255,170,255], smoke:[35,0,55],     ember:[195,70,255] },
+  divine:   {r:255,g:195,b:80,  core:[255,255,210], smoke:[110,70,15],   ember:[255,225,110]},
+  void:     {r:255,g:60, b:155, core:[255,170,255], smoke:[35,0,55],     ember:[195,70,255] },
 };
 let spell     = 'arcane';
-let intensity = 3;        // 1-5
+let intensity = 3;
 
 // ══════════════════════════════════════════════════════════════
-// TURBULANS / AKIŞ ALANI  (Perlin-benzeri)
+// TURBULANS / AKIŞ ALANI
 // ══════════════════════════════════════════════════════════════
 const FRES = 28;
 let fCols, fRows, fField;
@@ -213,18 +218,17 @@ buildFlow();
 window.addEventListener('resize', buildFlow);
 
 function noise2(x,y){
-  // 3 harmonik → daha doğal
-  return ((Math.sin(x*127.1 + y*311.7) * 43758.5453) % 1) * .5
-       + ((Math.sin(x*269.5 + y*183.3) * 43758.5453) % 1) * .3
-       + ((Math.sin(x*419.2 + y*371.9) * 43758.5453) % 1) * .2;
+  return ((Math.sin(x*127.1 + y*311.7) * 43758.5453) % 1) * 0.5
+       + ((Math.sin(x*269.5 + y*183.3) * 43758.5453) % 1) * 0.3
+       + ((Math.sin(x*419.2 + y*371.9) * 43758.5453) % 1) * 0.2;
 }
 
 function updateFlow(){
-  fT += .0032;
+  fT += 0.0032;
   for(let y=0; y<fRows; y++){
     for(let x=0; x<fCols; x++){
       const i = (y*fCols+x)*2;
-      const n = noise2(x*.07 + fT, y*.07 + fT*.55);
+      const n = noise2(x*0.07 + fT, y*0.07 + fT*0.55);
       const a = n * Math.PI * 4;
       fField[i]   = Math.cos(a);
       fField[i+1] = Math.sin(a);
@@ -233,28 +237,27 @@ function updateFlow(){
 }
 
 function flowAt(px, py){
-  const cx = Math.min(fCols-1, Math.max(0, px/FRES|0));
-  const cy = Math.min(fRows-1, Math.max(0, py/FRES|0));
+  const cx = Math.min(fCols-1, Math.max(0, Math.floor(px/FRES)));
+  const cy = Math.min(fRows-1, Math.max(0, Math.floor(py/FRES)));
   const i  = (cy*fCols+cx)*2;
   return {x: fField[i], y: fField[i+1]};
 }
 
 // ══════════════════════════════════════════════════════════════
-// PARTİKÜL SİSTEMİ — typed arrays (hız için)
-// tip: 0=orb  1=ember  2=smoke  3=spark  4=wisp
+// PARTİKÜL SİSTEMİ
 // ══════════════════════════════════════════════════════════════
 const MAX_P = 2200;
 const px_  = new Float32Array(MAX_P);
 const py_  = new Float32Array(MAX_P);
 const pvx  = new Float32Array(MAX_P);
 const pvy  = new Float32Array(MAX_P);
-const plf  = new Float32Array(MAX_P);   // life 1→0
-const pdc  = new Float32Array(MAX_P);   // decay/frame
-const psz  = new Float32Array(MAX_P);   // size px
+const plf  = new Float32Array(MAX_P);
+const pdc  = new Float32Array(MAX_P);
+const psz  = new Float32Array(MAX_P);
 const pty  = new Uint8Array(MAX_P);
-const psp  = new Uint8Array(MAX_P);     // spell index
-const pac  = new Uint8Array(MAX_P);     // active flag
-let   pH   = 0;                         // head pointer
+const psp  = new Uint8Array(MAX_P);
+const pac  = new Uint8Array(MAX_P);
+let   pH   = 0;
 
 const SPIDX  = {arcane:0,electric:1,fire:2,ice:3,divine:4,void:5};
 const SPLIST = ['arcane','electric','fire','ice','divine','void'];
@@ -263,7 +266,6 @@ function spawnP(x, y, type, count){
   const si = SPIDX[spell];
   const m  = intensity / 3;
   for(let n=0; n<count; n++){
-    // boş slot bul (veya en eski üzerine yaz)
     let idx = -1;
     for(let k=0; k<MAX_P; k++){
       const p=(pH+k)%MAX_P;
@@ -274,34 +276,39 @@ function spawnP(x, y, type, count){
 
     px_[idx]=x+(Math.random()-.5)*8;
     py_[idx]=y+(Math.random()-.5)*8;
-    psp[idx]=si; pty[idx]=type; pac[idx]=1; plf[idx]=1;
+    psp[idx]=si;
+    pty[idx]=type;
+    pac[idx]=1;
+    plf[idx]=1;
 
-    if(type===0){           // ORB — akış alanında süzülür
+    if(type===0){           // ORB
       pvx[idx]=(Math.random()-.5)*1.2;
       pvy[idx]=(Math.random()-.5)*1.2;
-      pdc[idx]=.007+Math.random()*.006;
+      pdc[idx]=0.007+Math.random()*0.006;
       psz[idx]=(3+Math.random()*7)*m;
-    } else if(type===1){    // EMBER — fırlatılır, düşer
-      const a=Math.random()*Math.PI*2, sp=(1.5+Math.random()*4.5)*m;
+    } else if(type===1){    // EMBER
+      const a=Math.random()*Math.PI*2;
+      const sp=(1.5+Math.random()*4.5)*m;
       pvx[idx]=Math.cos(a)*sp;
       pvy[idx]=Math.sin(a)*sp-2;
-      pdc[idx]=.022+Math.random()*.03;
+      pdc[idx]=0.022+Math.random()*0.03;
       psz[idx]=(1+Math.random()*3)*m;
-    } else if(type===2){    // SMOKE — genişler, yükselir
-      pvx[idx]=(Math.random()-.5)*.6;
-      pvy[idx]=-(Math.random()*1.1+.25);
-      pdc[idx]=.0038+Math.random()*.004;
+    } else if(type===2){    // SMOKE
+      pvx[idx]=(Math.random()-.5)*0.6;
+      pvy[idx]=-(Math.random()*1.1+0.25);
+      pdc[idx]=0.0038+Math.random()*0.004;
       psz[idx]=(14+Math.random()*32)*m;
-    } else if(type===3){    // SPARK — hızlı, lineer
-      const a=Math.random()*Math.PI*2, sp=(3+Math.random()*9)*m;
+    } else if(type===3){    // SPARK
+      const a=Math.random()*Math.PI*2;
+      const sp=(3+Math.random()*9)*m;
       pvx[idx]=Math.cos(a)*sp;
       pvy[idx]=Math.sin(a)*sp;
-      pdc[idx]=.038+Math.random()*.05;
-      psz[idx]=(.7+Math.random()*2.2)*m;
-    } else {                // WISP — yavaşça yükselir
-      pvx[idx]=(Math.random()-.5)*.45;
-      pvy[idx]=-(Math.random()*.8+.4);
-      pdc[idx]=.0075+Math.random()*.005;
+      pdc[idx]=0.038+Math.random()*0.05;
+      psz[idx]=(0.7+Math.random()*2.2)*m;
+    } else {                // WISP
+      pvx[idx]=(Math.random()-.5)*0.45;
+      pvy[idx]=-(Math.random()*0.8+0.4);
+      pdc[idx]=0.0075+Math.random()*0.005;
       psz[idx]=(5+Math.random()*12)*m;
     }
   }
@@ -313,21 +320,21 @@ function updateParticles(){
     plf[i]-=pdc[i];
     if(plf[i]<=0){pac[i]=0;continue;}
 
-    // akış alanı etkisi (tip'e göre farklı ağırlık)
     const f  = flowAt(px_[i],py_[i]);
-    const fi = pty[i]===0 ? .17 : pty[i]===4 ? .23 : pty[i]===2 ? .05 : .018;
+    const fi = pty[i]===0 ? 0.17 : pty[i]===4 ? 0.23 : pty[i]===2 ? 0.05 : 0.018;
     pvx[i]+=f.x*fi;
     pvy[i]+=f.y*fi;
 
-    // yerçekimi
-    if(pty[i]===1) pvy[i]+=.058;
-    if(pty[i]===3) pvy[i]+=.022;
+    if(pty[i]===1) pvy[i]+=0.058;
+    if(pty[i]===3) pvy[i]+=0.022;
 
-    // sönümleme
-    const d = pty[i]===2 ? .988 : .961;
-    pvx[i]*=d; pvy[i]*=d;
+    const d = pty[i]===2 ? 0.988 : 0.961;
+    pvx[i]*=d;
+    pvy[i]*=d;
 
-    px_[i]+=pvx[i]; py_[i]+=pvy[i];
+    px_[i]+=pvx[i];
+    py_[i]+=pvy[i];
+    
     if(px_[i]<-100||px_[i]>W+100||py_[i]<-100||py_[i]>H+100) pac[i]=0;
   }
 }
@@ -341,25 +348,26 @@ function drawParticles(ctx, bloom){
     const a  = plf[i];
     const t  = pty[i];
     const sz = psz[i];
-    const x  = px_[i], y=py_[i];
+    const x  = px_[i];
+    const y  = py_[i];
 
-    if(t===2){                          // SMOKE — yalnız fx katmanda
+    if(t===2){                          // SMOKE
       if(bloom) continue;
       const [sr,sg,sb]=p.smoke;
-      ctx.globalAlpha=a*.075;
-      const g=ctx.createRadialGradient(x,y,0,x,y,sz*(2-a*.5));
+      ctx.globalAlpha=a*0.075;
+      const g=ctx.createRadialGradient(x,y,0,x,y,sz*(2-a*0.5));
       g.addColorStop(0,`rgba(${sr},${sg},${sb},1)`);
       g.addColorStop(1,`rgba(${sr},${sg},${sb},0)`);
       ctx.fillStyle=g;
-      ctx.beginPath();ctx.arc(x,y,sz*(2-a*.5),0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.arc(x,y,sz*(2-a*0.5),0,Math.PI*2);ctx.fill();
 
     } else if(t===0){                   // ORB
       const [er,eg,eb]=[p.r,p.g,p.b];
       const [cr,cg,cb]=p.core;
       if(bloom){
-        ctx.globalAlpha=a*.58;
+        ctx.globalAlpha=a*0.58;
         const bg=ctx.createRadialGradient(x,y,0,x,y,sz*5.5);
-        bg.addColorStop(0,`rgba(${er},${eg},${eb},.55)`);
+        bg.addColorStop(0,`rgba(${er},${eg},${eb},0.55)`);
         bg.addColorStop(1,`rgba(${er},${eg},${eb},0)`);
         ctx.fillStyle=bg;ctx.beginPath();ctx.arc(x,y,sz*5.5,0,Math.PI*2);ctx.fill();
       } else {
@@ -367,18 +375,18 @@ function drawParticles(ctx, bloom){
         ctx.shadowBlur=sz*3.5;ctx.shadowColor=`rgb(${er},${eg},${eb})`;
         const g=ctx.createRadialGradient(x,y,0,x,y,sz);
         g.addColorStop(0,`rgba(${cr},${cg},${cb},1)`);
-        g.addColorStop(.35,`rgba(${er},${eg},${eb},.9)`);
+        g.addColorStop(0.35,`rgba(${er},${eg},${eb},0.9)`);
         g.addColorStop(1,`rgba(${er},${eg},${eb},0)`);
         ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,sz,0,Math.PI*2);ctx.fill();
       }
 
     } else if(t===1||t===3){            // EMBER / SPARK
       const [er,eg,eb]=p.ember;
-      const bsz=t===3?sz*.42:sz;
+      const bsz=t===3?sz*0.42:sz;
       if(bloom){
-        ctx.globalAlpha=a*.45;
+        ctx.globalAlpha=a*0.45;
         const bg=ctx.createRadialGradient(x,y,0,x,y,bsz*6.5);
-        bg.addColorStop(0,`rgba(${er},${eg},${eb},.38)`);
+        bg.addColorStop(0,`rgba(${er},${eg},${eb},0.38)`);
         bg.addColorStop(1,`rgba(${er},${eg},${eb},0)`);
         ctx.fillStyle=bg;ctx.beginPath();ctx.arc(x,y,bsz*6.5,0,Math.PI*2);ctx.fill();
       } else {
@@ -391,17 +399,17 @@ function drawParticles(ctx, bloom){
     } else {                            // WISP
       const [er,eg,eb]=[p.r,p.g,p.b];
       if(bloom){
-        ctx.globalAlpha=a*.65;
+        ctx.globalAlpha=a*0.65;
         const bg=ctx.createRadialGradient(x,y,0,x,y,sz*3.5);
-        bg.addColorStop(0,`rgba(${er},${eg},${eb},.52)`);
+        bg.addColorStop(0,`rgba(${er},${eg},${eb},0.52)`);
         bg.addColorStop(1,`rgba(${er},${eg},${eb},0)`);
         ctx.fillStyle=bg;ctx.beginPath();ctx.arc(x,y,sz*3.5,0,Math.PI*2);ctx.fill();
       } else {
-        ctx.globalAlpha=a*.88;
+        ctx.globalAlpha=a*0.88;
         ctx.shadowBlur=sz*2.5;ctx.shadowColor=`rgb(${er},${eg},${eb})`;
         const g=ctx.createRadialGradient(x,y,0,x,y,sz);
-        g.addColorStop(0,'rgba(255,255,255,.9)');
-        g.addColorStop(.45,`rgba(${er},${eg},${eb},.6)`);
+        g.addColorStop(0,'rgba(255,255,255,0.9)');
+        g.addColorStop(0.45,`rgba(${er},${eg},${eb},0.6)`);
         g.addColorStop(1,`rgba(${er},${eg},${eb},0)`);
         ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,sz,0,Math.PI*2);ctx.fill();
       }
@@ -411,19 +419,18 @@ function drawParticles(ctx, bloom){
 }
 
 // ══════════════════════════════════════════════════════════════
-// YILDIRIM / PLAZMA ZİNCİRLERİ
+// YILDIRIM ZİNCİRLERİ
 // ══════════════════════════════════════════════════════════════
 const bolts=[];
 
 function buildBolt(x1,y1,x2,y2,depth,segs){
   if(depth<=0){segs.push([x1,y1,x2,y2]);return;}
   const len=Math.hypot(x2-x1,y2-y1);
-  const mx=(x1+x2)/2+(Math.random()-.5)*len*.52;
-  const my=(y1+y2)/2+(Math.random()-.5)*len*.52;
+  const mx=(x1+x2)/2+(Math.random()-.5)*len*0.52;
+  const my=(y1+y2)/2+(Math.random()-.5)*len*0.52;
   buildBolt(x1,y1,mx,my,depth-1,segs);
   buildBolt(mx,my,x2,y2,depth-1,segs);
-  // dal (branch)
-  if(Math.random()<.28&&depth===2){
+  if(Math.random()<0.28&&depth===2){
     buildBolt(mx,my,
       mx+(Math.random()-.5)*95,
       my+(Math.random()-.5)*95,1,segs);
@@ -433,7 +440,7 @@ function buildBolt(x1,y1,x2,y2,depth,segs){
 function spawnBolt(x1,y1,x2,y2){
   const segs=[];
   buildBolt(x1,y1,x2,y2,3,segs);
-  bolts.push({segs,life:1,decay:.065+Math.random()*.09});
+  bolts.push({segs,life:1,decay:0.065+Math.random()*0.09});
 }
 
 function drawBolts(ctx){
@@ -445,14 +452,12 @@ function drawBolts(ctx){
     if(b.life<=0){bolts.splice(i,1);continue;}
     ctx.save();
     ctx.globalAlpha=b.life;
-    // dış parıltı
-    ctx.strokeStyle=`rgba(${er},${eg},${eb},.42)`;
+    ctx.strokeStyle=`rgba(${er},${eg},${eb},0.42)`;
     ctx.lineWidth=3.8;ctx.shadowBlur=24;ctx.shadowColor=`rgb(${er},${eg},${eb})`;
     ctx.beginPath();
     b.segs.forEach(([x1,y1,x2,y2])=>{ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);});
     ctx.stroke();
-    // iç çekirdek
-    ctx.strokeStyle='rgba(255,255,255,.93)';
+    ctx.strokeStyle='rgba(255,255,255,0.93)';
     ctx.lineWidth=1.1;ctx.shadowBlur=5;
     ctx.beginPath();
     b.segs.forEach(([x1,y1,x2,y2])=>{ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);});
@@ -462,7 +467,7 @@ function drawBolts(ctx){
 }
 
 // ══════════════════════════════════════════════════════════════
-// ENERJİ TOBU (iki el arası)
+// ENERJİ TOBU
 // ══════════════════════════════════════════════════════════════
 let orbData=null, orbA=0, orbP=0;
 
@@ -472,47 +477,45 @@ function drawOrb(ctx,bloom){
   const p=PAL[spell];
   const [er,eg,eb]=[p.r,p.g,p.b];
   const [cr,cg,cb]=p.core;
-  orbA+=.036; orbP+=.056;
-  const pulse=1+Math.sin(orbP)*.14;
+  orbA+=0.036;
+  orbP+=0.056;
+  const pulse=1+Math.sin(orbP)*0.14;
   ctx.save();
   if(bloom){
-    ctx.globalAlpha=.46;
+    ctx.globalAlpha=0.46;
     const bg=ctx.createRadialGradient(x,y,0,x,y,r*5.5*pulse);
-    bg.addColorStop(0,`rgba(${er},${eg},${eb},.55)`);
-    bg.addColorStop(.5,`rgba(${er},${eg},${eb},.1)`);
+    bg.addColorStop(0,`rgba(${er},${eg},${eb},0.55)`);
+    bg.addColorStop(0.5,`rgba(${er},${eg},${eb},0.1)`);
     bg.addColorStop(1,`rgba(${er},${eg},${eb},0)`);
     ctx.fillStyle=bg;ctx.beginPath();ctx.arc(x,y,r*5.5*pulse,0,Math.PI*2);ctx.fill();
   } else {
-    // dış sis
-    ctx.globalAlpha=.16;
+    ctx.globalAlpha=0.16;
     const og=ctx.createRadialGradient(x,y,0,x,y,r*3.3);
-    og.addColorStop(0,`rgba(${er},${eg},${eb},.5)`);
+    og.addColorStop(0,`rgba(${er},${eg},${eb},0.5)`);
     og.addColorStop(1,`rgba(${er},${eg},${eb},0)`);
     ctx.fillStyle=og;ctx.beginPath();ctx.arc(x,y,r*3.3,0,Math.PI*2);ctx.fill();
-    // çekirdek küre
-    ctx.globalAlpha=.92;
+    ctx.globalAlpha=0.92;
     ctx.shadowBlur=r*2.6;ctx.shadowColor=`rgb(${er},${eg},${eb})`;
-    const sg=ctx.createRadialGradient(x-r*.22,y-r*.22,0,x,y,r*pulse);
+    const sg=ctx.createRadialGradient(x-r*0.22, y-r*0.22, 0, x, y, r*pulse);
     sg.addColorStop(0,`rgb(${cr},${cg},${cb})`);
-    sg.addColorStop(.22,`rgb(${er},${eg},${eb})`);
-    sg.addColorStop(.65,`rgba(${er},${eg},${eb},.44)`);
+    sg.addColorStop(0.22,`rgb(${er},${eg},${eb})`);
+    sg.addColorStop(0.65,`rgba(${er},${eg},${eb},0.44)`);
     sg.addColorStop(1,`rgba(${er},${eg},${eb},0)`);
     ctx.fillStyle=sg;ctx.beginPath();ctx.arc(x,y,r*pulse,0,Math.PI*2);ctx.fill();
-    // dönen yaylar
     ctx.shadowBlur=10;
     for(let k=0;k<4;k++){
       const a0=orbA+k*Math.PI/2;
-      ctx.globalAlpha=.68;
-      ctx.strokeStyle=`rgba(${er},${eg},${eb},.82)`;
+      ctx.globalAlpha=0.68;
+      ctx.strokeStyle=`rgba(${er},${eg},${eb},0.82)`;
       ctx.lineWidth=1.4;
-      ctx.beginPath();ctx.arc(x,y,r*.68*pulse,a0,a0+Math.PI*.88);ctx.stroke();
+      ctx.beginPath();ctx.arc(x,y,r*0.68*pulse,a0,a0+Math.PI*0.88);ctx.stroke();
     }
-    // yörüngede dönen noktalar
     for(let k=0;k<8;k++){
       const a=orbA*1.55+k*Math.PI/4;
-      const d=r*(1.1+Math.sin(orbP+k)*.09);
-      const sx=x+Math.cos(a)*d, sy=y+Math.sin(a)*d;
-      ctx.globalAlpha=.92;ctx.shadowBlur=6;
+      const d=r*(1.1+Math.sin(orbP+k)*0.09);
+      const sx=x+Math.cos(a)*d;
+      const sy=y+Math.sin(a)*d;
+      ctx.globalAlpha=0.92;ctx.shadowBlur=6;
       ctx.fillStyle='#fff';
       ctx.beginPath();ctx.arc(sx,sy,1.8,0,Math.PI*2);ctx.fill();
     }
@@ -521,7 +524,7 @@ function drawOrb(ctx,bloom){
 }
 
 // ══════════════════════════════════════════════════════════════
-// PARMAK UCU İZLERİ (21 landmark — her parmak ayrı)
+// PARMAK UCU İZLERİ
 // ══════════════════════════════════════════════════════════════
 const TIPS = [4,8,12,16,20];
 const trails = Array.from({length:2}, ()=> TIPS.map(()=>[]) );
@@ -531,23 +534,27 @@ function addTP(hi,fi,x,y){
   t.push({x,y,l:1});
   if(t.length>22) t.shift();
 }
+
 function updateTrails(){
   trails.forEach(h=>h.forEach(t=>{
     for(let i=t.length-1;i>=0;i--){
-      t[i].l-=.065;
+      t[i].l-=0.065;
       if(t[i].l<=0) t.splice(i,1);
     }
   }));
 }
+
 function drawTrails(ctx){
   const p=PAL[spell];
   const [er,eg,eb]=[p.r,p.g,p.b];
-  ctx.save();ctx.lineCap='round';
+  ctx.save();
+  ctx.lineCap='round';
   trails.forEach(h=>h.forEach(trail=>{
     if(trail.length<2) return;
     for(let i=1;i<trail.length;i++){
-      const p0=trail[i-1],p1=trail[i];
-      ctx.globalAlpha=p1.l*.55;
+      const p0=trail[i-1];
+      const p1=trail[i];
+      ctx.globalAlpha=p1.l*0.55;
       ctx.strokeStyle=`rgba(${er},${eg},${eb},1)`;
       ctx.lineWidth=p1.l*3.4;
       ctx.shadowBlur=8;ctx.shadowColor=`rgb(${er},${eg},${eb})`;
@@ -558,30 +565,36 @@ function drawTrails(ctx){
 }
 
 // ══════════════════════════════════════════════════════════════
-// LANDMARK → EKRAN KOORDİNATI
+// LANDMARK KOORDİNATI DÖNÜŞTÜRME
 // ══════════════════════════════════════════════════════════════
-function lm2s(lm){ return {x:(1-lm.x)*W, y:lm.y*H}; }
+function lm2s(lm){ 
+  return {x:(1-lm.x)*W, y:lm.y*H};
+}
 
 function palmXY(lms){
   const ids=[0,5,9,13,17];
   let x=0,y=0;
-  ids.forEach(i=>{const p=lm2s(lms[i]);x+=p.x/ids.length;y+=p.y/ids.length;});
+  ids.forEach(i=>{
+    const p=lm2s(lms[i]);
+    x+=p.x/ids.length;
+    y+=p.y/ids.length;
+  });
   return {x,y};
 }
 
 // ══════════════════════════════════════════════════════════════
-// JEST ALGILAMA (21 landmark)
+// JEST ALGILAMA
 // ══════════════════════════════════════════════════════════════
 function detectGesture(lms){
   const tips=[4,8,12,16,20].map(i=>lm2s(lms[i]));
   const pips=[3,6,10,14,18].map(i=>lm2s(lms[i]));
   const wrist=lm2s(lms[0]);
   const ext=[];
-  // baş parmak: x farkı
-  ext.push(Math.abs(tips[0].x-wrist.x)>Math.abs(pips[0].x-wrist.x)*.65?1:0);
-  // diğer 4: y farkı (ekranda yukarı = küçük y)
+  
+  ext.push(Math.abs(tips[0].x-wrist.x)>Math.abs(pips[0].x-wrist.x)*0.65?1:0);
   for(let i=1;i<5;i++) ext.push(tips[i].y<pips[i].y?1:0);
   const tot=ext.reduce((a,b)=>a+b,0);
+  
   if(tot>=4)                          return 'OPEN';
   if(tot===0)                         return 'FIST';
   if(ext[1]&&ext[2]&&!ext[3]&&!ext[4]) return 'PEACE';
@@ -602,12 +615,11 @@ const GLABEL={
 };
 
 // ══════════════════════════════════════════════════════════════
-// GESTURE → PARTİKÜL SPAWN (hız çarpanıyla)
+// GESTURE → PARTIKÜLLER
 // ══════════════════════════════════════════════════════════════
 function spawnGesture(cx,cy,g,vel){
   const speed=Math.hypot(vel.x,vel.y);
   const m=intensity;
-  // hız patlaması
   const burst=Math.min(8, 1+Math.floor(speed/10));
 
   if(g==='OPEN'){
@@ -631,7 +643,7 @@ function spawnGesture(cx,cy,g,vel){
 // ══════════════════════════════════════════════════════════════
 // EL VERİSİ
 // ══════════════════════════════════════════════════════════════
-let handResults=[]; // [{lms, gesture}]
+let handResults=[];
 let prevPalms=[null,null];
 let handVel=[{x:0,y:0},{x:0,y:0}];
 
@@ -644,45 +656,36 @@ function loop(){
   requestAnimationFrame(loop);
   frame++;
 
-  // akış alanını güncelle
   updateFlow();
 
-  // ── FX canvas temizle (iz efekti için yarı şeffaf siyah) ──
-  // kamera varken üstten karartıyoruz (kamera zaten arkada)
-  fxCtx.fillStyle='rgba(0,0,0,.18)';
+  fxCtx.fillStyle='rgba(0,0,0,0.18)';
   fxCtx.fillRect(0,0,W,H);
 
-  // ── Bloom temizle ──
   blmCtx.clearRect(0,0,W,H);
 
-  // ── DEMO MOD ──
   if(demoMode){
-    demoT+=.016;
-    const rr=Math.min(W,H)*.2;
+    demoT+=0.016;
+    const rr=Math.min(W,H)*0.2;
     handResults=[
-      {lms:makeDemoLms(W/2-rr*Math.cos(demoT)*.85, H/2+rr*Math.sin(demoT*.6)*.5), gesture:frame%200<100?'OPEN':'PEACE'},
-      {lms:makeDemoLms(W/2+rr*Math.cos(demoT+Math.PI)*.85, H/2-rr*Math.sin(demoT*.6+.5)*.5), gesture:frame%260<130?'OPEN':'POINT'},
+      {lms:makeDemoLms(W/2-rr*Math.cos(demoT)*0.85, H/2+rr*Math.sin(demoT*0.6)*0.5), gesture:frame%200<100?'OPEN':'PEACE'},
+      {lms:makeDemoLms(W/2+rr*Math.cos(demoT+Math.PI)*0.85, H/2-rr*Math.sin(demoT*0.6+0.5)*0.5), gesture:frame%260<130?'OPEN':'POINT'},
     ];
   }
 
-  // ── İZLERİ GÜNCELLE ──
   updateTrails();
 
-  // ── EL İŞLEME ──
   let h0=null, h1=null;
   handResults.forEach((hand,hi)=>{
     if(!hand||!hand.lms) return;
     const palm=palmXY(hand.lms);
     const g=hand.gesture||'OPEN';
 
-    // hız
     if(prevPalms[hi]){
       handVel[hi].x=palm.x-prevPalms[hi].x;
       handVel[hi].y=palm.y-prevPalms[hi].y;
     }
     prevPalms[hi]={...palm};
 
-    // her parmak ucuna efekt
     TIPS.forEach((tipIdx,fi)=>{
       const tip=lm2s(hand.lms[tipIdx]);
       addTP(hi,fi,tip.x,tip.y);
@@ -690,16 +693,13 @@ function loop(){
       if(frame%7===0) spawnP(tip.x,tip.y,4,1*intensity);
     });
 
-    // avuç efekti
     if(frame%2===0) spawnGesture(palm.x,palm.y,g,handVel[hi]);
 
-    // PEACE → parmaklar arası yıldırım
     if(g==='PEACE'&&frame%10===0){
       const idx=lm2s(hand.lms[8]);
       const mid=lm2s(hand.lms[12]);
       spawnBolt(idx.x,idx.y,mid.x,mid.y);
     }
-    // ROCK → rastgele plazma
     if(g==='ROCK'&&frame%5===0){
       spawnBolt(palm.x,palm.y,
         palm.x+(Math.random()-.5)*170,
@@ -710,10 +710,9 @@ function loop(){
     else        h1=palm;
   });
 
-  // ── İKİ EL — enerji tobu + yıldırım köprüsü ──
   if(h0&&h1){
     const dist=Math.hypot(h1.x-h0.x,h1.y-h0.y);
-    orbData={x:(h0.x+h1.x)/2,y:(h0.y+h1.y)/2,r:Math.max(20,dist*.14)};
+    orbData={x:(h0.x+h1.x)/2,y:(h0.y+h1.y)/2,r:Math.max(20,dist*0.14)};
     if(frame%5===0) spawnBolt(h0.x,h0.y,h1.x,h1.y);
     if(frame%2===0) spawnP(orbData.x,orbData.y,0,2*intensity);
     if(frame%3===0) spawnP(orbData.x,orbData.y,4,2*intensity);
@@ -721,7 +720,6 @@ function loop(){
     orbData=null;
   }
 
-  // ── JEST ETİKETİ ──
   if(handResults.length>0&&handResults[0]){
     glabelEl.textContent=GLABEL[handResults[0].gesture||'OPEN']||'';
     glabelEl.style.opacity='1';
@@ -729,29 +727,27 @@ function loop(){
     glabelEl.style.opacity='0';
   }
 
-  // ── ÇİZ ──
   updateParticles();
   drawTrails(fxCtx);
   drawBolts(fxCtx);
   drawOrb(fxCtx,false);
   drawParticles(fxCtx,false);
 
-  // bloom pass
   drawOrb(blmCtx,true);
   drawParticles(blmCtx,true);
 }
 
-// Demo için yapay landmark
+// Demo landmark üretim
 function makeDemoLms(cx,cy){
   return Array.from({length:21},(_,i)=>({
-    x:1-(cx+(Math.sin(i*.85)*28))/W,
-    y:(cy+(Math.cos(i*.72)*18))/H,
+    x:1-(cx+(Math.sin(i*0.85)*28))/W,
+    y:(cy+(Math.cos(i*0.72)*18))/H,
     z:0
   }));
 }
 
 // ══════════════════════════════════════════════════════════════
-// MEDİAPİPE GESTURE RECOGNIZER
+// MEDİAPİPE SETUP
 // ══════════════════════════════════════════════════════════════
 let gestureRecognizer=null;
 let camRunning=false;
@@ -779,7 +775,6 @@ async function initMP(){
   }
 }
 
-// Webcam → gesture recognizer → el verisi
 function predictWebcam(){
   if(!camRunning) return;
   if(!gestureRecognizer){requestAnimationFrame(predictWebcam);return;}
@@ -789,16 +784,18 @@ function predictWebcam(){
 
   const now=performance.now();
   let results;
-  try{ results=gestureRecognizer.recognizeForVideo(video,now); }
-  catch(e){requestAnimationFrame(predictWebcam);return;}
+  try{
+    results=gestureRecognizer.recognizeForVideo(video,now);
+  } catch(e){
+    requestAnimationFrame(predictWebcam);
+    return;
+  }
 
   if(results&&results.landmarks&&results.landmarks.length>0){
     handResults=results.landmarks.map((lms,i)=>{
-      // GestureRecognizer'dan gesture al; yoksa landmark'tan kendimiz hesapla
       let g='PARTIAL';
       if(results.gestures&&results.gestures[i]&&results.gestures[i][0]){
         const mpG=results.gestures[i][0].categoryName;
-        // MediaPipe kategori → bizim isimler
         const MAP={
           Open_Palm:'OPEN', Closed_Fist:'FIST',
           Victory:'PEACE', Pointing_Up:'POINT',
@@ -820,7 +817,7 @@ function predictWebcam(){
 }
 
 // ══════════════════════════════════════════════════════════════
-// MOUSE / TOUCH FALLBACK
+// MOUSE FALLBACK
 // ══════════════════════════════════════════════════════════════
 let mouseGesture='OPEN';
 let mPrev={x:null,y:null};
@@ -832,28 +829,36 @@ fxCvs.addEventListener('mousemove',e=>{
   handResults=[{lms:makeDemoLms(e.clientX,e.clientY),gesture:mouseGesture}];
   handVel[0]=vel;
 });
-fxCvs.addEventListener('mouseleave',()=>{if(!camRunning&&!demoMode) handResults=[];});
+
+fxCvs.addEventListener('mouseleave',()=>{
+  if(!camRunning&&!demoMode) handResults=[];
+});
+
 fxCvs.addEventListener('click',()=>{
   const gs=['OPEN','PEACE','POINT','FIST','ROCK','PINKY'];
   mouseGesture=gs[(gs.indexOf(mouseGesture)+1)%gs.length];
   glabelEl.textContent='Tıklayarak jest değiştirdin: '+mouseGesture;
   glabelEl.style.opacity='1';
 });
+
 fxCvs.addEventListener('touchmove',e=>{
   e.preventDefault();
   if(camRunning||demoMode) return;
   const t=e.touches[0];
   handResults=[{lms:makeDemoLms(t.clientX,t.clientY),gesture:mouseGesture}];
 },{passive:false});
-fxCvs.addEventListener('touchend',()=>{if(!camRunning&&!demoMode) handResults=[];});
+
+fxCvs.addEventListener('touchend',()=>{
+  if(!camRunning&&!demoMode) handResults=[];
+});
 
 // ══════════════════════════════════════════════════════════════
-// UI OLAYLARI
+// UI EVENTS
 // ══════════════════════════════════════════════════════════════
 document.getElementById('cam-btn').addEventListener('click',async()=>{
   if(camRunning){
     camRunning=false;
-    video.srcObject?.getTracks().forEach(t=>t.stop());
+    if(video.srcObject) video.srcObject.getTracks().forEach(t=>t.stop());
     video.classList.remove('show');
     document.getElementById('cam-btn').textContent='📷 KAMERA AÇ';
     document.getElementById('cam-btn').classList.remove('on');
@@ -903,11 +908,10 @@ document.getElementById('intensity').addEventListener('input',e=>{
 async function boot(){
   await initMP();
   loop();
-  // yükleme ekranını kaldır
   setTimeout(()=>{
-    loadEl.style.transition='opacity .9s';
+    loadEl.style.transition='opacity 0.9s';
     loadEl.style.opacity='0';
-    setTimeout(()=>loadEl.remove(),.9e3);
+    setTimeout(()=>loadEl.remove(),900);
   },1400);
 }
 boot();
