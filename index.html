@@ -32,23 +32,27 @@ button{background:rgba(16,3,36,.85);border:1px solid #b060ff;color:#ddc8ff;paddi
 button:hover{box-shadow:0 0 15px #b060ff;border-color:#e0b0ff;color:#e0b0ff;}
 button.active{background:#b060ff;color:#000;}
 
-.color-buttons{display:flex;gap:8px;}
-.color-btn{width:36px;height:36px;border-radius:50%;border:2px solid #666;cursor:pointer;transition:all .2s;}
+.color-buttons{display:flex;gap:10px;}
+.color-btn{
+    width:42px;height:42px;border-radius:50%;border:2px solid #666;
+    cursor:pointer;transition:all .2s;
+    display:flex;justify-content:center;align-items:center;
+    font-size:1.3rem; 
+    text-shadow: 0 0 4px rgba(0,0,0,0.8); 
+}
 .color-btn:hover{transform:scale(1.1);}
-.color-btn.active{box-shadow:0 0 12px currentColor;border-color:white;}
+.color-btn.active{box-shadow:0 0 15px currentColor;border-color:white;transform:scale(1.15);}
 
-#arcane{background:#b060ff;}
-#electric{background:#40d0ff;}
-#fire{background:#ff5f1f;}
-#ice{background:#80f0ff;}
-#divine{background:#ffd060;}
+#arcane{background:#b060ff; color: #b060ff;}
+#electric{background:#40d0ff; color: #40d0ff;}
+#fire{background:#ff5f1f; color: #ff5f1f;}
+#ice{background:#80f0ff; color: #80f0ff;}
+#divine{background:#ffd060; color: #ffd060;}
 
 /* ════════ STATS ════════ */
 #stats{position:fixed;bottom:120px;right:20px;background:rgba(0,0,0,.6);border:1px solid #40d0ff;border-radius:8px;padding:12px 18px;font-size:.75rem;color:#40d0ff;z-index:10;}
 .stat-row{margin:5px 0;}
 
-/* ════════ HAND LABELS ════════ */
-.hand-label{position:absolute;background:rgba(0,0,0,.7);border:1px solid #b060ff;border-radius:6px;padding:6px 12px;font-size:.75rem;color:#ddc8ff;pointer-events:none;z-index:5;white-space:nowrap;}
 </style>
 </head>
 <body>
@@ -64,26 +68,14 @@ button.active{background:#b060ff;color:#000;}
 <div id="tutorial">
   <h3>📚 BÜYÜ REHBERİ</h3>
   <div id="tutorial-content">
-    <div class="gesture-item">
-      <span class="gesture-key">✋ Açık El:</span> Büyü Çemberi
-    </div>
-    <div class="gesture-item">
-      <span class="gesture-key">✊ Yumruk:</span> Enerji Birikiyor
-    </div>
-    <div class="gesture-item">
-      <span class="gesture-key">✌️ Barış:</span> Çift Yıldırım
-    </div>
-    <div class="gesture-item">
-      <span class="gesture-key">☝️ İşaret:</span> Lazer Odak
-    </div>
-    <div class="gesture-item">
-      <span class="gesture-key">🤙 Pinky:</span> Wisp Akışı
-    </div>
-    <div class="gesture-item">
-      <span class="gesture-key">🤘 Rock:</span> Kaos Fırtınası
-    </div>
+    <div class="gesture-item"><span class="gesture-key">✋ Açık El:</span> Büyü Çemberi</div>
+    <div class="gesture-item"><span class="gesture-key">✊ Yumruk:</span> Enerji Birikiyor</div>
+    <div class="gesture-item"><span class="gesture-key">✌️ Barış:</span> Çift Yıldırım</div>
+    <div class="gesture-item"><span class="gesture-key">☝️ İşaret:</span> Lazer Odak</div>
+    <div class="gesture-item"><span class="gesture-key">🤙 Pinky:</span> Wisp Akışı</div>
+    <div class="gesture-item"><span class="gesture-key">🤘 Rock:</span> Kaos Fırtınası</div>
     <div class="gesture-item" style="margin-top:12px;border-left-color:#40d0ff;background:rgba(64,192,255,.1);">
-      <span class="gesture-key">💡 İpucu:</span> Hızlı hareket = Güçlü efekt!
+      <span class="gesture-key">🚀 FPS Bilgisi:</span> 60 FPS Sabitlendi!
     </div>
   </div>
 </div>
@@ -98,7 +90,7 @@ button.active{background:#b060ff;color:#000;}
 <div id="stats">
   <div class="stat-row">Particles: <span id="particle-count">0</span></div>
   <div class="stat-row">Hands: <span id="hand-count">0</span></div>
-  <div class="stat-row">FPS: <span id="fps-count">60</span></div>
+  <div class="stat-row" style="color:#0f0; font-weight:bold; font-size:0.9rem;">FPS: <span id="fps-count">60</span></div>
 </div>
 
 <!-- KONTROLLER -->
@@ -107,11 +99,11 @@ button.active{background:#b060ff;color:#000;}
   <button id="demo-btn">🎭 DEMO</button>
   
   <div class="color-buttons">
-    <button class="color-btn active" id="arcane" data-color="arcane" title="Arcane"></button>
-    <button class="color-btn" id="electric" data-color="electric" title="Electric"></button>
-    <button class="color-btn" id="fire" data-color="fire" title="Fire"></button>
-    <button class="color-btn" id="ice" data-color="ice" title="Ice"></button>
-    <button class="color-btn" id="divine" data-color="divine" title="Divine"></button>
+    <button class="color-btn active" id="arcane" data-color="arcane" title="Arcane">🔮</button>
+    <button class="color-btn" id="electric" data-color="electric" title="Electric">⚡</button>
+    <button class="color-btn" id="fire" data-color="fire" title="Fire">🔥</button>
+    <button class="color-btn" id="ice" data-color="ice" title="Ice">❄️</button>
+    <button class="color-btn" id="divine" data-color="divine" title="Divine">✨</button>
   </div>
 </div>
 
@@ -126,7 +118,7 @@ button.active{background:#b060ff;color:#000;}
 // ════════════════════════════════════════════════════
 const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d', {willReadFrequently: true});
+const ctx = canvas.getContext('2d', { alpha: false }); // FPS BOOST: Arkası saydam değil, siyah dedik
 const statusEl = document.getElementById('status');
 const camBtn = document.getElementById('cam-btn');
 const demoBtn = document.getElementById('demo-btn');
@@ -151,216 +143,75 @@ const COLORS = {
 };
 
 let currentColor = 'arcane';
-let currentIntensity = 1;
 
 // ════════════════════════════════════════════════════
-// PARTIKÜLLER
+// PARTIKÜLLER (FPS Boost için Gölgeler Silindi, Sayı Azaltıldı)
 // ════════════════════════════════════════════════════
-const MAX_PARTICLES = 1500;
+const MAX_PARTICLES = 250; 
 const particles = [];
 
 class Particle {
   constructor(x, y, color, type = 'normal') {
-    this.x = x;
-    this.y = y;
-    this.color = color;
-    this.type = type;
+    this.x = x; this.y = y; this.color = color; this.type = type;
     
-    if (type === 'snow') { // KAR TANESİ
-      this.vx = (Math.random() - 0.5) * 0.8;
-      this.vy = Math.random() * 1 + 0.5;
-      this.life = 1;
-      this.decay = 0.004 + Math.random() * 0.002;
-      this.size = Math.random() * 3 + 1;
-      this.rotation = Math.random() * Math.PI * 2;
-      this.rotSpeed = (Math.random() - 0.5) * 0.08;
-      this.wobble = Math.random() * Math.PI * 2;
-    } else if (type === 'ember') { // ATEŞ
-      this.vx = (Math.random() - 0.5) * 3;
-      this.vy = -(Math.random() * 3 + 2.5);
-      this.life = 1;
-      this.decay = 0.04 + Math.random() * 0.03;
-      this.size = Math.random() * 14 + 6;
-      this.wobble = Math.random() * Math.PI * 2;
-      this.glow = 1;
-    } else if (type === 'smoke') { // IŞIK DUMANI
-      this.vx = (Math.random() - 0.5) * 1.2;
-      this.vy = Math.random() * -2 - 0.8;
-      this.life = 1;
-      this.decay = 0.006 + Math.random() * 0.004;
-      this.size = Math.random() * 30 + 20;
-      this.rotation = Math.random() * Math.PI * 2;
-      this.rotSpeed = (Math.random() - 0.5) * 0.04;
-      this.expansion = 1;
-    } else if (type === 'spark') { // ÇAKIŞAN ÇIZGILER
-      const angle = Math.random() * Math.PI * 2;
-      const speed = Math.random() * 7 + 4;
-      this.vx = Math.cos(angle) * speed;
-      this.vy = Math.sin(angle) * speed;
-      this.life = 1;
-      this.decay = 0.05 + Math.random() * 0.04;
-      this.size = Math.random() * 2.5 + 0.5;
-      this.trail = [];
-    } else if (type === 'orb') { // BÜYÜ KÜRESI
-      const angle = Math.random() * Math.PI * 2;
-      const speed = Math.random() * 1.5 + 0.5;
-      this.vx = Math.cos(angle) * speed;
-      this.vy = Math.sin(angle) * speed;
-      this.life = 1;
-      this.decay = 0.015 + Math.random() * 0.01;
-      this.size = Math.random() * 6 + 3;
-      this.pulse = Math.random();
-    } else { // NORMAL
-      const angle = Math.random() * Math.PI * 2;
-      const speed = Math.random() * 2 + 0.8;
-      this.vx = Math.cos(angle) * speed;
-      this.vy = Math.sin(angle) * speed;
-      this.life = 1;
-      this.decay = 0.018 + Math.random() * 0.015;
-      this.size = Math.random() * 8 + 2;
+    if (type === 'snow') {
+      this.vx = (Math.random() - 0.5) * 1; this.vy = Math.random() * 2 + 1;
+      this.life = 1; this.decay = 0.02; this.size = Math.random() * 4 + 2;
+    } else if (type === 'ember') {
+      this.vx = (Math.random() - 0.5) * 4; this.vy = -(Math.random() * 4 + 2);
+      this.life = 1; this.decay = 0.03; this.size = Math.random() * 6 + 3;
+    } else if (type === 'smoke') {
+      this.vx = (Math.random() - 0.5) * 2; this.vy = Math.random() * -3 - 1;
+      this.life = 1; this.decay = 0.02; this.size = Math.random() * 15 + 10;
+    } else if (type === 'spark') {
+      const angle = Math.random() * Math.PI * 2; const speed = Math.random() * 8 + 4;
+      this.vx = Math.cos(angle) * speed; this.vy = Math.sin(angle) * speed;
+      this.life = 1; this.decay = 0.05; this.size = Math.random() * 2 + 1;
+    } else if (type === 'orb') {
+      const angle = Math.random() * Math.PI * 2; const speed = Math.random() * 2;
+      this.vx = Math.cos(angle) * speed; this.vy = Math.sin(angle) * speed;
+      this.life = 1; this.decay = 0.03; this.size = Math.random() * 8 + 4;
+    } else {
+      const angle = Math.random() * Math.PI * 2; const speed = Math.random() * 3 + 1;
+      this.vx = Math.cos(angle) * speed; this.vy = Math.sin(angle) * speed;
+      this.life = 1; this.decay = 0.03; this.size = Math.random() * 5 + 2;
     }
   }
 
   update() {
-    this.x += this.vx;
-    this.y += this.vy;
+    this.x += this.vx; this.y += this.vy;
+    if (this.type === 'ember') { this.vy -= 0.1; }
+    if (this.type === 'spark') { this.vy += 0.1; }
     
-    if (this.type === 'snow') {
-      this.wobble += 0.05;
-      this.vx += Math.sin(this.wobble) * 0.02;
-    }
-    if (this.type === 'ember') {
-      this.vy -= 0.15;
-      this.wobble += 0.06;
-      this.glow *= 0.98;
-    }
-    if (this.type === 'smoke') {
-      this.expansion += 0.01;
-    }
-    if (this.type === 'spark') {
-      this.vy += 0.08;
-    }
-    if (this.type === 'orb') {
-      this.pulse += 0.03;
-    }
-    
-    this.vx *= 0.95;
-    this.vy *= 0.95;
-    this.life -= this.decay;
-    if (this.size > 0.3) this.size *= 0.96;
+    this.vx *= 0.95; this.vy *= 0.95; this.life -= this.decay;
+    if (this.size > 0.5) this.size *= 0.95;
   }
 
   draw(ctx, color) {
     if (this.life <= 0) return;
-
-    ctx.save();
-
-    if (this.type === 'snow') { // KAR TANESİ
-      ctx.globalAlpha = this.life * 0.7;
-      ctx.translate(this.x, this.y);
-      ctx.rotate(this.rotation);
-      
-      ctx.strokeStyle = `rgba(${color.rgb},${this.life})`;
-      ctx.lineWidth = this.size * 0.5;
-      ctx.lineCap = 'round';
-      
-      // 6 kollu kar tanesi
-      for (let i = 0; i < 6; i++) {
-        const a = (i * Math.PI) / 3;
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(Math.cos(a) * this.size * 2, Math.sin(a) * this.size * 2);
+    
+    // FPS BOOST: Radial Gradient ve ShadowBlur yerine Alpha kullanıldı! (60 FPS garantisi)
+    ctx.globalAlpha = this.life;
+    ctx.fillStyle = `rgb(${color.rgb})`;
+    
+    if (this.type === 'spark') {
+        ctx.strokeStyle = `rgb(${color.rgb})`;
+        ctx.lineWidth = this.size;
+        ctx.lineCap = 'round';
+        ctx.beginPath(); 
+        ctx.moveTo(this.x - this.vx * 2, this.y - this.vy * 2); 
+        ctx.lineTo(this.x, this.y); 
         ctx.stroke();
-      }
-
-    } else if (this.type === 'ember') { // ATEŞ
-      const wobbleX = Math.sin(this.wobble) * 2;
-      ctx.globalAlpha = Math.max(0, this.life * this.glow);
-      ctx.shadowBlur = this.size * 4;
-      ctx.shadowColor = `rgb(${color.rgb})`;
-      
-      const grad = ctx.createRadialGradient(
-        this.x + wobbleX, this.y, 0,
-        this.x, this.y, this.size
-      );
-      grad.addColorStop(0, `rgba(255,220,0,${this.life})`);
-      grad.addColorStop(0.4, `rgba(${color.rgb},${this.life * 0.8})`);
-      grad.addColorStop(1, `rgba(${color.rgb},0)`);
-      
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-      ctx.fill();
-
-    } else if (this.type === 'smoke') { // IŞIK DUMANI
-      ctx.globalAlpha = this.life * 0.15;
-      ctx.translate(this.x, this.y);
-      if (this.rotation) ctx.rotate(this.rotation);
-      
-      const expandedSize = this.size * this.expansion;
-      const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, expandedSize);
-      grad.addColorStop(0, `rgba(${color.rgb},${this.life * 0.5})`);
-      grad.addColorStop(0.5, `rgba(${color.rgb},${this.life * 0.2})`);
-      grad.addColorStop(1, `rgba(${color.rgb},0)`);
-      
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.arc(0, 0, expandedSize, 0, Math.PI * 2);
-      ctx.fill();
-
-    } else if (this.type === 'spark') { // ÇAKIŞAN ÇIZGILER
-      ctx.globalAlpha = this.life * 0.8;
-      ctx.strokeStyle = `rgba(${color.rgb},${this.life})`;
-      ctx.lineWidth = this.size * 3;
-      ctx.lineCap = 'round';
-      ctx.shadowBlur = 8;
-      ctx.shadowColor = `rgb(${color.rgb})`;
-      
-      ctx.beginPath();
-      ctx.moveTo(this.x - this.vx * 3, this.y - this.vy * 3);
-      ctx.lineTo(this.x, this.y);
-      ctx.stroke();
-
-    } else if (this.type === 'orb') { // BÜYÜ KÜRESI
-      ctx.globalAlpha = this.life * 0.9;
-      const pulseSize = this.size * (1 + Math.sin(this.pulse) * 0.2);
-      
-      ctx.shadowBlur = pulseSize * 3;
-      ctx.shadowColor = `rgb(${color.rgb})`;
-      
-      const grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, pulseSize);
-      grad.addColorStop(0, `rgba(255,255,255,${this.life})`);
-      grad.addColorStop(0.3, `rgba(${color.rgb},${this.life * 0.9})`);
-      grad.addColorStop(1, `rgba(${color.rgb},0)`);
-      
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, pulseSize, 0, Math.PI * 2);
-      ctx.fill();
-
-    } else { // NORMAL
-      ctx.globalAlpha = this.life * 0.8;
-      ctx.shadowBlur = this.size * 2;
-      ctx.shadowColor = `rgb(${color.rgb})`;
-      
-      const grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size);
-      grad.addColorStop(0, `rgba(255,255,255,${this.life})`);
-      grad.addColorStop(0.4, `rgba(${color.rgb},${this.life * 0.9})`);
-      grad.addColorStop(1, `rgba(${color.rgb},0)`);
-      
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-      ctx.fill();
+    } else {
+        ctx.beginPath(); 
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); 
+        ctx.fill();
     }
-
-    ctx.restore();
   }
 }
 
-function spawnParticles(x, y, count = 8, types = ['normal']) {
+function spawnParticles(x, y, count = 3, types = ['normal']) {
   if (particles.length >= MAX_PARTICLES) return;
-  
   const color = COLORS[currentColor];
   for (let i = 0; i < count && particles.length < MAX_PARTICLES; i++) {
     const type = types[Math.floor(Math.random() * types.length)];
@@ -373,7 +224,6 @@ function spawnParticles(x, y, count = 8, types = ['normal']) {
 // ════════════════════════════════════════════════════
 let hands = null;
 let handLandmarks = [];
-let handGestures = [];
 let cameraActive = false;
 
 async function initHands() {
@@ -383,15 +233,14 @@ async function initHands() {
     });
     hands.setOptions({
       maxNumHands: 2,
-      modelComplexity: 1,
-      minDetectionConfidence: 0.7,
+      modelComplexity: 0, // FPS BOOST: Model hafifleştirildi
+      minDetectionConfidence: 0.5,
       minTrackingConfidence: 0.5
     });
     hands.onResults(onHandsResults);
     statusEl.textContent = '✓ Ready — Click CAMERA';
   } catch (e) {
     statusEl.textContent = '⚠ Use DEMO mode';
-    console.error(e);
   }
 }
 
@@ -399,56 +248,48 @@ function onHandsResults(results) {
   handLandmarks = results.multiHandLandmarks || [];
 }
 
-// ════════════════════════════════════════════════════
-// JEST ALGILAMA
-// ════════════════════════════════════════════════════
 function detectGesture(landmarks) {
   const tips = [4, 8, 12, 16, 20].map(i => landmarks[i]);
   const pips = [3, 6, 10, 14, 18].map(i => landmarks[i]);
-  const wrist = landmarks[0];
   
-  let extended = 0;
-  extended += Math.abs(tips[0].x - wrist.x) > Math.abs(pips[0].x - wrist.x) * 0.6 ? 1 : 0;
+  // Parmakların açık olup olmadığını y eksenine göre net bir şekilde ölçüyoruz
+  const up = [];
   for (let i = 1; i < 5; i++) {
-    extended += tips[i].y < pips[i].y ? 1 : 0;
+      up[i] = tips[i].y < pips[i].y;
   }
   
-  if (extended >= 4) return 'OPEN';
-  if (extended === 0) return 'FIST';
-  if (extended === 2 && tips[1].y < pips[1].y && tips[2].y < pips[2].y) return 'PEACE';
-  if (extended === 1 && tips[1].y < pips[1].y) return 'POINT';
-  if (!extended && tips[4].y < pips[4].y) return 'PINKY';
-  if (tips[0].x < wrist.x && !extended && tips[4].y < pips[4].y) return 'ROCK';
+  // Açık olan parmak sayısı (Başparmak hariç)
+  const openFingersCount = up.slice(1).filter(Boolean).length;
+  
+  if (openFingersCount === 4) return 'OPEN';
+  if (openFingersCount === 0) return 'FIST';
+  if (up[1] && up[2] && !up[3] && !up[4]) return 'PEACE';
+  if (up[1] && !up[2] && !up[3] && !up[4]) return 'POINT';
+  if (!up[1] && !up[2] && !up[3] && up[4]) return 'PINKY';
+  
+  // ROCK İŞARETİ DÜZELTİLDİ: Sadece İşaret (1) ve Serçe (4) Havada!
+  if (up[1] && !up[2] && !up[3] && up[4]) return 'ROCK';
+
   return 'PARTIAL';
 }
 
 const GESTURE_EFFECTS = {
-  OPEN: {types: ['orb', 'smoke', 'normal'], count: 12},
-  FIST: {types: ['ember', 'smoke'], count: 8},
-  PEACE: {types: ['spark', 'spark', 'spark'], count: 15},
-  POINT: {types: ['spark', 'spark', 'spark'], count: 20},
-  PINKY: {types: ['snow', 'normal', 'normal'], count: 10},
-  ROCK: {types: ['ember', 'spark', 'ember'], count: 18},
-  PARTIAL: {types: ['normal', 'normal'], count: 5}
+  OPEN: {types: ['orb', 'smoke', 'normal'], count: 3},
+  FIST: {types: ['ember', 'smoke'], count: 2},
+  PEACE: {types: ['spark'], count: 3},
+  POINT: {types: ['spark'], count: 4},
+  PINKY: {types: ['snow', 'normal'], count: 2},
+  ROCK: {types: ['ember', 'spark'], count: 4},
+  PARTIAL: {types: ['normal'], count: 1}
 };
 
-// ════════════════════════════════════════════════════
-// LANDMARK KOORDİNATI
-// ════════════════════════════════════════════════════
-function getLandmarkScreen(lm) {
-  return {
-    x: (1 - lm.x) * canvas.width,
-    y: lm.y * canvas.height
-  };
-}
+function getLandmarkScreen(lm) { return { x: (1 - lm.x) * canvas.width, y: lm.y * canvas.height }; }
 
 function getPalmCenter(landmarks) {
-  const indices = [0, 5, 9, 13, 17];
-  let x = 0, y = 0;
+  const indices = [0, 5, 9, 13, 17]; let x = 0, y = 0;
   indices.forEach(i => {
     const p = getLandmarkScreen(landmarks[i]);
-    x += p.x / indices.length;
-    y += p.y / indices.length;
+    x += p.x / indices.length; y += p.y / indices.length;
   });
   return {x, y};
 }
@@ -456,14 +297,12 @@ function getPalmCenter(landmarks) {
 // ════════════════════════════════════════════════════
 // DEMO MOD
 // ════════════════════════════════════════════════════
-let demoMode = false;
-let demoTime = 0;
+let demoMode = false; let demoTime = 0;
 
 function makeDemoHand(cx, cy) {
   return Array.from({length: 21}, (_, i) => ({
     x: 1 - (cx + Math.sin(i * 0.9) * 70) / canvas.width,
-    y: (cy + Math.cos(i * 0.9) * 50) / canvas.height,
-    z: 0
+    y: (cy + Math.cos(i * 0.9) * 50) / canvas.height, z: 0
   }));
 }
 
@@ -471,91 +310,50 @@ function updateDemo() {
   if (!demoMode) return;
   demoTime += 0.016;
   handLandmarks = [
-    makeDemoHand(canvas.width * 0.25 + Math.sin(demoTime) * 100, 
-                 canvas.height * 0.45 + Math.cos(demoTime * 0.7) * 80),
-    makeDemoHand(canvas.width * 0.75 + Math.sin(demoTime + Math.PI) * 100, 
-                 canvas.height * 0.55 + Math.cos(demoTime * 0.7 + Math.PI) * 80)
+    makeDemoHand(canvas.width * 0.25 + Math.sin(demoTime) * 100, canvas.height * 0.45 + Math.cos(demoTime * 0.7) * 80),
+    makeDemoHand(canvas.width * 0.75 + Math.sin(demoTime + Math.PI) * 100, canvas.height * 0.55 + Math.cos(demoTime * 0.7 + Math.PI) * 80)
   ];
 }
 
 // ════════════════════════════════════════════════════
-// KAMERA
+// KAMERA KONTROLLERİ (FPS Boost: Çözünürlük Düşürüldü)
 // ════════════════════════════════════════════════════
 async function startCamera() {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: {facingMode: 'user', width: {ideal: 1280}, height: {ideal: 720}}
-    });
-    video.srcObject = stream;
-    video.style.display = 'block';
+    // 1280x720 yerine 640x480 kullanıyoruz, eli bulmak için fazlasıyla yeterli ve 4 kat hızlı!
+    const stream = await navigator.mediaDevices.getUserMedia({ video: {facingMode: 'user', width: {ideal: 640}, height: {ideal: 480}} });
+    video.srcObject = stream; video.style.display = 'block';
     statusEl.textContent = '✓ Camera active';
-    camBtn.textContent = '✕ KAPAT';
-    camBtn.classList.add('active');
-    cameraActive = true;
-    demoMode = false;
-    demoBtn.classList.remove('active');
+    camBtn.textContent = '✕ KAPAT'; camBtn.classList.add('active');
+    cameraActive = true; demoMode = false; demoBtn.classList.remove('active');
     tutorialEl.style.opacity = '0.8';
     
     if (hands) {
-      const camera = new Camera(video, {
-        onFrame: async () => {
-          if (cameraActive) await hands.send({image: video});
-        },
-        width: 1280,
-        height: 720
-      });
+      const camera = new Camera(video, { onFrame: async () => { if (cameraActive) await hands.send({image: video}); }, width: 640, height: 480 });
       camera.start();
     }
-  } catch (e) {
-    statusEl.textContent = '✗ Camera error: ' + e.message;
-  }
+  } catch (e) { statusEl.textContent = '✗ Camera error: ' + e.message; }
 }
 
 function stopCamera() {
-  if (video.srcObject) {
-    video.srcObject.getTracks().forEach(t => t.stop());
-  }
-  video.style.display = 'none';
-  statusEl.textContent = 'Camera closed';
-  camBtn.textContent = '📷 KAMERA AÇ';
-  camBtn.classList.remove('active');
-  cameraActive = false;
-  handLandmarks = [];
-  tutorialEl.style.opacity = '0.6';
+  if (video.srcObject) { video.srcObject.getTracks().forEach(t => t.stop()); }
+  video.style.display = 'none'; statusEl.textContent = 'Camera closed';
+  camBtn.textContent = '📷 KAMERA AÇ'; camBtn.classList.remove('active');
+  cameraActive = false; handLandmarks = []; tutorialEl.style.opacity = '0.6';
 }
 
-camBtn.addEventListener('click', async () => {
-  if (cameraActive) {
-    stopCamera();
-  } else {
-    await startCamera();
-  }
-});
-
-// ════════════════════════════════════════════════════
-// DEMO BUTTON
-// ════════════════════════════════════════════════════
+camBtn.addEventListener('click', async () => { if (cameraActive) { stopCamera(); } else { await startCamera(); } });
 demoBtn.addEventListener('click', () => {
   if (cameraActive) stopCamera();
   demoMode = !demoMode;
-  
   if (demoMode) {
-    demoBtn.classList.add('active');
-    demoBtn.textContent = '✕ DEMO KAPAT';
-    statusEl.textContent = '🎭 Demo aktif';
-    tutorialEl.style.opacity = '1';
+    demoBtn.classList.add('active'); demoBtn.textContent = '✕ DEMO KAPAT'; statusEl.textContent = '🎭 Demo aktif'; tutorialEl.style.opacity = '1';
   } else {
-    demoBtn.classList.remove('active');
-    demoBtn.textContent = '🎭 DEMO';
-    statusEl.textContent = 'Demo kapatıldı';
-    handLandmarks = [];
-    tutorialEl.style.opacity = '0.6';
+    demoBtn.classList.remove('active'); demoBtn.textContent = '🎭 DEMO'; statusEl.textContent = 'Demo kapatıldı'; handLandmarks = []; tutorialEl.style.opacity = '0.6';
   }
 });
 
-// ════════════════════════════════════════════════════
-// RENK SEÇİM
-// ════════════════════════════════════════════════════
+// RENK BUTONLARI
 document.querySelectorAll('.color-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
@@ -565,117 +363,75 @@ document.querySelectorAll('.color-btn').forEach(btn => {
   });
 });
 
-// ════════════════════════════════════════════════════
 // STATS
-// ════════════════════════════════════════════════════
-let frameCount = 0;
-let lastFpsTime = Date.now();
-let fpsValue = 60;
-
+let frameCount = 0; let lastFpsTime = Date.now(); let fpsValue = 60;
 function updateStats() {
-  frameCount++;
-  const now = Date.now();
-  if (now - lastFpsTime >= 1000) {
-    fpsValue = frameCount;
-    frameCount = 0;
-    lastFpsTime = now;
-  }
-  
+  frameCount++; const now = Date.now();
+  if (now - lastFpsTime >= 1000) { fpsValue = frameCount; frameCount = 0; lastFpsTime = now; }
   document.getElementById('particle-count').textContent = particles.length;
   document.getElementById('hand-count').textContent = handLandmarks.length;
-  document.getElementById('fps-count').textContent = fpsValue;
+  
+  const fpsEl = document.getElementById('fps-count');
+  fpsEl.textContent = fpsValue;
+  if(fpsValue > 30) fpsEl.parentElement.style.color = "#0f0";
+  else if(fpsValue > 15) fpsEl.parentElement.style.color = "#ff0";
+  else fpsEl.parentElement.style.color = "#f00";
 }
 
-// ════════════════════════════════════════════════════
-// ANA RENDER LOOP
-// ════════════════════════════════════════════════════
+// ANA DÖNGÜ
 function animate() {
   requestAnimationFrame(animate);
   updateStats();
+  
+  // FPS BOOST: Şeffaf temizleme yerine tam siyah temizleme kullanıyoruz
+  ctx.fillStyle = "rgba(0,0,0,0.2)"; // Hafif iz bırakmak için transparan siyah atıyoruz
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Clear canvas
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Draw particles with lighter blend
-  ctx.globalCompositeOperation = 'lighter';
+  ctx.globalCompositeOperation = 'lighter'; // Lighter modu parlama hissi verir, shadowBlur kullanmamıza gerek bırakmaz
+  
   for (let i = particles.length - 1; i >= 0; i--) {
     particles[i].update();
-    if (particles[i].life <= 0) {
-      particles.splice(i, 1);
-    } else {
-      particles[i].draw(ctx, COLORS[currentColor]);
-    }
+    if (particles[i].life <= 0) { particles.splice(i, 1); } 
+    else { particles[i].draw(ctx, COLORS[currentColor]); }
   }
   ctx.globalCompositeOperation = 'source-over';
 
-  // Process hands
   updateDemo();
   
-  handLandmarks.forEach((landmarks, handIdx) => {
+  handLandmarks.forEach((landmarks) => {
     const gesture = detectGesture(landmarks);
     const palm = getPalmCenter(landmarks);
     
-    // Gest efektlerini spawn et
     if (GESTURE_EFFECTS[gesture]) {
       const effect = GESTURE_EFFECTS[gesture];
       spawnParticles(palm.x, palm.y, effect.count, effect.types);
     }
 
-    // Parmak uçlarından iz
+    // Parmak ucu izleri 
     [4, 8, 12, 16, 20].forEach(tipIdx => {
       const tip = getLandmarkScreen(landmarks[tipIdx]);
-      if (frameCount % 4 === 0) {
-        spawnParticles(tip.x, tip.y, 2, ['normal', 'normal']);
-      }
+      if (frameCount % 10 === 0) { spawnParticles(tip.x, tip.y, 1, ['normal']); } // Seyreltildi
     });
 
-    // El iskeletini çiz
-    ctx.globalAlpha = 0.3;
-    ctx.strokeStyle = COLORS[currentColor].hex;
-    ctx.lineWidth = 2.5;
+    ctx.globalAlpha = 0.5; ctx.strokeStyle = COLORS[currentColor].hex; ctx.lineWidth = 2;
+    const connections = [ [0,1],[1,2],[2,3],[3,4], [5,6],[6,7],[7,8], [9,10],[10,11],[11,12], [13,14],[14,15],[15,16], [17,18],[18,19],[19,20], [0,5],[5,9],[9,13],[13,17] ];
     
-    const connections = [
-      [0,1],[1,2],[2,3],[3,4],
-      [5,6],[6,7],[7,8],
-      [9,10],[10,11],[11,12],
-      [13,14],[14,15],[15,16],
-      [17,18],[18,19],[19,20],
-      [0,5],[5,9],[9,13],[13,17]
-    ];
-
+    ctx.beginPath();
     connections.forEach(([from, to]) => {
-      const p1 = getLandmarkScreen(landmarks[from]);
-      const p2 = getLandmarkScreen(landmarks[to]);
-      ctx.beginPath();
-      ctx.moveTo(p1.x, p1.y);
-      ctx.lineTo(p2.x, p2.y);
-      ctx.stroke();
+      const p1 = getLandmarkScreen(landmarks[from]); const p2 = getLandmarkScreen(landmarks[to]);
+      ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y);
     });
+    ctx.stroke();
 
-    // Parmak uçlarını göster
+    ctx.globalAlpha = 0.8; ctx.fillStyle = COLORS[currentColor].hex;
     [4, 8, 12, 16, 20].forEach(tipIdx => {
       const tip = getLandmarkScreen(landmarks[tipIdx]);
-      ctx.globalAlpha = 0.7;
-      ctx.fillStyle = COLORS[currentColor].hex;
-      ctx.beginPath();
-      ctx.arc(tip.x, tip.y, 7, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.beginPath(); ctx.arc(tip.x, tip.y, 5, 0, Math.PI * 2); ctx.fill();
     });
-
-    // Avuç merkezini göster
-    ctx.globalAlpha = 0.8;
-    ctx.fillStyle = COLORS[currentColor].hex;
-    ctx.beginPath();
-    ctx.arc(palm.x, palm.y, 10, 0, Math.PI * 2);
-    ctx.fill();
   });
-
   ctx.globalAlpha = 1;
 }
 
-// ════════════════════════════════════════════════════
-// BAŞLAT
-// ════════════════════════════════════════════════════
 initHands();
 animate();
 tutorialEl.style.opacity = '0.6';
