@@ -1,1 +1,916 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>✦ Arcane Hands — Ultimate</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@400;600&display=swap');
 
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#000;overflow:hidden;font-family:'Cinzel',serif;cursor:none;}
+
+/* ── 4 KATMAN: video → fx → bloom → UI ── */
+#video{
+  position:fixed;inset:0;width:100%;height:100%;
+  object-fit:cover;transform:scaleX(-1);
+  z-index:1;opacity:0;transition:opacity 1s;
+}
+#video.show{opacity:1;}
+#fx-canvas{position:fixed;inset:0;z-index:2;pointer-events:none;}
+#bloom-canvas{position:fixed;inset:0;z-index:3;pointer-events:none;mix-blend-mode:screen;opacity:.8;}
+#ui{position:fixed;inset:0;z-index:10;pointer-events:none;}
+
+/* ── BAŞLIK ── */
+#title{
+  position:absolute;top:22px;left:50%;transform:translateX(-50%);
+  text-align:center;white-space:nowrap;
+}
+#title h1{
+  font-family:'Cinzel Decorative',serif;
+  font-size:clamp(.85rem,2.2vw,1.7rem);
+  letter-spacing:.35em;color:#eedcff;
+  text-shadow:0 0 18px #c080ff,0 0 55px #8030cc;
+  animation:hglow 3s ease-in-out infinite;
+}
+@keyframes hglow{
+  0%,100%{text-shadow:0 0 18px #c080ff,0 0 55px #8030cc;}
+  50%{text-shadow:0 0 32px #e0b0ff,0 0 85px #b060ff,0 0 130px #7020bb;}
+}
+
+/* ── JEST ETIKETI ── */
+#gesture-label{
+  position:absolute;top:74px;left:50%;transform:translateX(-50%);
+  font-size:clamp(.65rem,1.3vw,.9rem);letter-spacing:.2em;
+  color:#ddc8ff;opacity:0;transition:opacity .25s;
+  text-shadow:0 0 14px #b060ff;white-space:nowrap;
+}
+
+/* ── DURUM ÇUBUĞU ── */
+#status{
+  position:absolute;bottom:86px;left:50%;transform:translateX(-50%);
+  font-size:.6rem;letter-spacing:.22em;color:#9060bb66;
+  white-space:nowrap;text-align:center;
+}
+
+/* ── KONTROLLER ── */
+#controls{
+  position:absolute;bottom:20px;left:50%;transform:translateX(-50%);
+  display:flex;gap:10px;align-items:center;
+  pointer-events:all;flex-wrap:wrap;justify-content:center;
+}
+.btn{
+  background:rgba(16,3,36,.88);border:1px solid #6030aa44;
+  color:#cc9fff;padding:7px 15px;border-radius:6px;
+  font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.12em;
+  cursor:pointer;transition:all .22s;backdrop-filter:blur(10px);
+}
+.btn:hover{border-color:#b060ff;box-shadow:0 0 16px #b060ff30;color:#ecd8ff;}
+.btn.on{border-color:#40d0ff;color:#40d0ff;box-shadow:0 0 14px #40d0ff30;}
+
+/* ── BÜYÜ SEÇİCİ ── */
+.spell-row{display:flex;gap:7px;}
+.sp{
+  width:38px;height:38px;border-radius:50%;
+  border:2px solid #fff14;background:rgba(6,1,15,.88);
+  cursor:pointer;font-size:1rem;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .22s;backdrop-filter:blur(8px);
+}
+.sp:hover{transform:scale(1.12);}
+.sp.on{box-shadow:0 0 0 2px var(--sc),0 0 18px var(--sc);}
+.sp[data-s="arcane"]  {--sc:#b060ff;}
+.sp[data-s="electric"]{--sc:#40d0ff;}
+.sp[data-s="fire"]    {--sc:#ff5f1f;}
+.sp[data-s="ice"]     {--sc:#80f0ff;}
+.sp[data-s="divine"]  {--sc:#ffd060;}
+.sp[data-s="void"]    {--sc:#ff40a0;}
+
+/* ── YOĞUNLUk ── */
+#int-wrap{display:flex;align-items:center;gap:5px;color:#806099;font-size:.6rem;letter-spacing:.1em;}
+#intensity{width:70px;accent-color:#b060ff;}
+
+/* ── YÜKLEME EKRANI ── */
+#loading{
+  position:fixed;inset:0;z-index:100;background:#000;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+}
+#loading h2{
+  font-family:'Cinzel Decorative',serif;font-size:1.3rem;
+  letter-spacing:.3em;color:#eedcff;text-shadow:0 0 28px #b060ff;
+}
+#loading p{color:#8040aa66;font-size:.65rem;letter-spacing:.2em;}
+.lorb{
+  width:54px;height:54px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#f0d0ff,#b060ff,#5010aa);
+  box-shadow:0 0 30px #b060ff,0 0 60px #8030cc;
+  animation:lorb 1.4s ease-in-out infinite;
+}
+@keyframes lorb{0%,100%{transform:scale(1)}50%{transform:scale(1.24)}}
+</style>
+</head>
+<body>
+
+<!-- KATMAN 1 — Kamera -->
+<video id="video" autoplay playsinline muted></video>
+
+<!-- KATMAN 2+3 — Efektler + Bloom -->
+<canvas id="fx-canvas"></canvas>
+<canvas id="bloom-canvas"></canvas>
+
+<!-- KATMAN 4 — UI -->
+<div id="ui">
+  <div id="title"><h1>✦ ARCANE HANDS ✦</h1></div>
+  <div id="gesture-label"></div>
+  <div id="status">KAMERA AÇ VEYA DEMO MODU DENEYEBİLİRSİN</div>
+  <div id="controls">
+    <div class="spell-row">
+      <button class="sp on" data-s="arcane"   title="Arcane">🔮</button>
+      <button class="sp"   data-s="electric" title="Electric">⚡</button>
+      <button class="sp"   data-s="fire"     title="Fire">🔥</button>
+      <button class="sp"   data-s="ice"      title="Ice">❄️</button>
+      <button class="sp"   data-s="divine"   title="Divine">✨</button>
+      <button class="sp"   data-s="void"     title="Void">🌑</button>
+    </div>
+    <button class="btn" id="cam-btn">📷 KAMERA AÇ</button>
+    <button class="btn" id="demo-btn">🎭 DEMO</button>
+    <div id="int-wrap">
+      <span>YOĞ</span>
+      <input type="range" id="intensity" min="1" max="5" value="3">
+    </div>
+  </div>
+</div>
+
+<!-- YÜKLEME -->
+<div id="loading">
+  <div class="lorb"></div>
+  <h2>✦ ARCANE HANDS ✦</h2>
+  <p id="load-msg">MEDİAPİPE YÜKLENİYOR...</p>
+</div>
+
+<!-- MediaPipe Tasks Vision (GestureRecognizer + Landmarks) -->
+<script type="importmap">
+{
+  "imports": {
+    "@mediapipe/tasks-vision": "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/vision_bundle.js"
+  }
+}
+</script>
+
+<script type="module">
+import { GestureRecognizer, FilesetResolver } from "@mediapipe/tasks-vision";
+
+'use strict';
+
+// ══════════════════════════════════════════════════════════════
+// CANVAS & BOYUT
+// ══════════════════════════════════════════════════════════════
+const video    = document.getElementById('video');
+const fxCvs    = document.getElementById('fx-canvas');
+const blmCvs   = document.getElementById('bloom-canvas');
+const fxCtx    = fxCvs.getContext('2d');
+const blmCtx   = blmCvs.getContext('2d');
+const statusEl = document.getElementById('status');
+const glabelEl = document.getElementById('gesture-label');
+const loadEl   = document.getElementById('loading');
+const loadMsg  = document.getElementById('load-msg');
+
+let W = 0, H = 0;
+function resize(){
+  W = fxCvs.width  = blmCvs.width  = window.innerWidth;
+  H = fxCvs.height = blmCvs.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ══════════════════════════════════════════════════════════════
+// BÜYÜ PALETLERİ
+// ══════════════════════════════════════════════════════════════
+const PAL = {
+  arcane:   {r:180,g:80, b:255, core:[255,220,255], smoke:[100,30,160],  ember:[220,130,255]},
+  electric: {r:40, g:200,b:255, core:[255,255,255], smoke:[20,80,150],   ember:[100,210,255]},
+  fire:     {r:255,g:75, b:20,  core:[255,240,160], smoke:[70,15,8],     ember:[255,150,30] },
+  ice:      {r:100,g:220,b:255, core:[220,248,255], smoke:[30,70,110],   ember:[160,235,255]},
+  divine:   {r:255,g:195,b:50,  core:[255,255,210], smoke:[110,70,15],   ember:[255,225,110]},
+  void:     {r:255,g:35, b:155, core:[255,170,255], smoke:[35,0,55],     ember:[195,70,255] },
+};
+let spell     = 'arcane';
+let intensity = 3;        // 1-5
+
+// ══════════════════════════════════════════════════════════════
+// TURBULANS / AKIŞ ALANI  (Perlin-benzeri)
+// ══════════════════════════════════════════════════════════════
+const FRES = 28;
+let fCols, fRows, fField;
+let fT = 0;
+
+function buildFlow(){
+  fCols = Math.ceil(W/FRES) + 1;
+  fRows = Math.ceil(H/FRES) + 1;
+  fField = new Float32Array(fCols * fRows * 2);
+}
+buildFlow();
+window.addEventListener('resize', buildFlow);
+
+function noise2(x,y){
+  // 3 harmonik → daha doğal
+  return ((Math.sin(x*127.1 + y*311.7) * 43758.5453) % 1) * .5
+       + ((Math.sin(x*269.5 + y*183.3) * 43758.5453) % 1) * .3
+       + ((Math.sin(x*419.2 + y*371.9) * 43758.5453) % 1) * .2;
+}
+
+function updateFlow(){
+  fT += .0032;
+  for(let y=0; y<fRows; y++){
+    for(let x=0; x<fCols; x++){
+      const i = (y*fCols+x)*2;
+      const n = noise2(x*.07 + fT, y*.07 + fT*.55);
+      const a = n * Math.PI * 4;
+      fField[i]   = Math.cos(a);
+      fField[i+1] = Math.sin(a);
+    }
+  }
+}
+
+function flowAt(px, py){
+  const cx = Math.min(fCols-1, Math.max(0, px/FRES|0));
+  const cy = Math.min(fRows-1, Math.max(0, py/FRES|0));
+  const i  = (cy*fCols+cx)*2;
+  return {x: fField[i], y: fField[i+1]};
+}
+
+// ══════════════════════════════════════════════════════════════
+// PARTİKÜL SİSTEMİ — typed arrays (hız için)
+// tip: 0=orb  1=ember  2=smoke  3=spark  4=wisp
+// ══════════════════════════════════════════════════════════════
+const MAX_P = 2200;
+const px_  = new Float32Array(MAX_P);
+const py_  = new Float32Array(MAX_P);
+const pvx  = new Float32Array(MAX_P);
+const pvy  = new Float32Array(MAX_P);
+const plf  = new Float32Array(MAX_P);   // life 1→0
+const pdc  = new Float32Array(MAX_P);   // decay/frame
+const psz  = new Float32Array(MAX_P);   // size px
+const pty  = new Uint8Array(MAX_P);
+const psp  = new Uint8Array(MAX_P);     // spell index
+const pac  = new Uint8Array(MAX_P);     // active flag
+let   pH   = 0;                         // head pointer
+
+const SPIDX  = {arcane:0,electric:1,fire:2,ice:3,divine:4,void:5};
+const SPLIST = ['arcane','electric','fire','ice','divine','void'];
+
+function spawnP(x, y, type, count){
+  const si = SPIDX[spell];
+  const m  = intensity / 3;
+  for(let n=0; n<count; n++){
+    // boş slot bul (veya en eski üzerine yaz)
+    let idx = -1;
+    for(let k=0; k<MAX_P; k++){
+      const p=(pH+k)%MAX_P;
+      if(!pac[p]){idx=p;break;}
+    }
+    if(idx<0) idx=pH%MAX_P;
+    pH=(pH+1)%MAX_P;
+
+    px_[idx]=x+(Math.random()-.5)*8;
+    py_[idx]=y+(Math.random()-.5)*8;
+    psp[idx]=si; pty[idx]=type; pac[idx]=1; plf[idx]=1;
+
+    if(type===0){           // ORB — akış alanında süzülür
+      pvx[idx]=(Math.random()-.5)*1.2;
+      pvy[idx]=(Math.random()-.5)*1.2;
+      pdc[idx]=.007+Math.random()*.006;
+      psz[idx]=(3+Math.random()*7)*m;
+    } else if(type===1){    // EMBER — fırlatılır, düşer
+      const a=Math.random()*Math.PI*2, sp=(1.5+Math.random()*4.5)*m;
+      pvx[idx]=Math.cos(a)*sp;
+      pvy[idx]=Math.sin(a)*sp-2;
+      pdc[idx]=.022+Math.random()*.03;
+      psz[idx]=(1+Math.random()*3)*m;
+    } else if(type===2){    // SMOKE — genişler, yükselir
+      pvx[idx]=(Math.random()-.5)*.6;
+      pvy[idx]=-(Math.random()*1.1+.25);
+      pdc[idx]=.0038+Math.random()*.004;
+      psz[idx]=(14+Math.random()*32)*m;
+    } else if(type===3){    // SPARK — hızlı, lineer
+      const a=Math.random()*Math.PI*2, sp=(3+Math.random()*9)*m;
+      pvx[idx]=Math.cos(a)*sp;
+      pvy[idx]=Math.sin(a)*sp;
+      pdc[idx]=.038+Math.random()*.05;
+      psz[idx]=(.7+Math.random()*2.2)*m;
+    } else {                // WISP — yavaşça yükselir
+      pvx[idx]=(Math.random()-.5)*.45;
+      pvy[idx]=-(Math.random()*.8+.4);
+      pdc[idx]=.0075+Math.random()*.005;
+      psz[idx]=(5+Math.random()*12)*m;
+    }
+  }
+}
+
+function updateParticles(){
+  for(let i=0; i<MAX_P; i++){
+    if(!pac[i]) continue;
+    plf[i]-=pdc[i];
+    if(plf[i]<=0){pac[i]=0;continue;}
+
+    // akış alanı etkisi (tip'e göre farklı ağırlık)
+    const f  = flowAt(px_[i],py_[i]);
+    const fi = pty[i]===0 ? .17 : pty[i]===4 ? .23 : pty[i]===2 ? .05 : .018;
+    pvx[i]+=f.x*fi;
+    pvy[i]+=f.y*fi;
+
+    // yerçekimi
+    if(pty[i]===1) pvy[i]+=.058;
+    if(pty[i]===3) pvy[i]+=.022;
+
+    // sönümleme
+    const d = pty[i]===2 ? .988 : .961;
+    pvx[i]*=d; pvy[i]*=d;
+
+    px_[i]+=pvx[i]; py_[i]+=pvy[i];
+    if(px_[i]<-100||px_[i]>W+100||py_[i]<-100||py_[i]>H+100) pac[i]=0;
+  }
+}
+
+function drawParticles(ctx, bloom){
+  ctx.save();
+  for(let i=0; i<MAX_P; i++){
+    if(!pac[i]) continue;
+    const s  = SPLIST[psp[i]];
+    const p  = PAL[s];
+    const a  = plf[i];
+    const t  = pty[i];
+    const sz = psz[i];
+    const x  = px_[i], y=py_[i];
+
+    if(t===2){                          // SMOKE — yalnız fx katmanda
+      if(bloom) continue;
+      const [sr,sg,sb]=p.smoke;
+      ctx.globalAlpha=a*.075;
+      const g=ctx.createRadialGradient(x,y,0,x,y,sz*(2-a*.5));
+      g.addColorStop(0,`rgba(${sr},${sg},${sb},1)`);
+      g.addColorStop(1,`rgba(${sr},${sg},${sb},0)`);
+      ctx.fillStyle=g;
+      ctx.beginPath();ctx.arc(x,y,sz*(2-a*.5),0,Math.PI*2);ctx.fill();
+
+    } else if(t===0){                   // ORB
+      const [er,eg,eb]=[p.r,p.g,p.b];
+      const [cr,cg,cb]=p.core;
+      if(bloom){
+        ctx.globalAlpha=a*.58;
+        const bg=ctx.createRadialGradient(x,y,0,x,y,sz*5.5);
+        bg.addColorStop(0,`rgba(${er},${eg},${eb},.55)`);
+        bg.addColorStop(1,`rgba(${er},${eg},${eb},0)`);
+        ctx.fillStyle=bg;ctx.beginPath();ctx.arc(x,y,sz*5.5,0,Math.PI*2);ctx.fill();
+      } else {
+        ctx.globalAlpha=a;
+        ctx.shadowBlur=sz*3.5;ctx.shadowColor=`rgb(${er},${eg},${eb})`;
+        const g=ctx.createRadialGradient(x,y,0,x,y,sz);
+        g.addColorStop(0,`rgba(${cr},${cg},${cb},1)`);
+        g.addColorStop(.35,`rgba(${er},${eg},${eb},.9)`);
+        g.addColorStop(1,`rgba(${er},${eg},${eb},0)`);
+        ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,sz,0,Math.PI*2);ctx.fill();
+      }
+
+    } else if(t===1||t===3){            // EMBER / SPARK
+      const [er,eg,eb]=p.ember;
+      const bsz=t===3?sz*.42:sz;
+      if(bloom){
+        ctx.globalAlpha=a*.45;
+        const bg=ctx.createRadialGradient(x,y,0,x,y,bsz*6.5);
+        bg.addColorStop(0,`rgba(${er},${eg},${eb},.38)`);
+        bg.addColorStop(1,`rgba(${er},${eg},${eb},0)`);
+        ctx.fillStyle=bg;ctx.beginPath();ctx.arc(x,y,bsz*6.5,0,Math.PI*2);ctx.fill();
+      } else {
+        ctx.globalAlpha=a;
+        ctx.shadowBlur=bsz*4;ctx.shadowColor=`rgb(${er},${eg},${eb})`;
+        ctx.fillStyle='#fff';
+        ctx.beginPath();ctx.arc(x,y,bsz,0,Math.PI*2);ctx.fill();
+      }
+
+    } else {                            // WISP
+      const [er,eg,eb]=[p.r,p.g,p.b];
+      if(bloom){
+        ctx.globalAlpha=a*.65;
+        const bg=ctx.createRadialGradient(x,y,0,x,y,sz*3.5);
+        bg.addColorStop(0,`rgba(${er},${eg},${eb},.52)`);
+        bg.addColorStop(1,`rgba(${er},${eg},${eb},0)`);
+        ctx.fillStyle=bg;ctx.beginPath();ctx.arc(x,y,sz*3.5,0,Math.PI*2);ctx.fill();
+      } else {
+        ctx.globalAlpha=a*.88;
+        ctx.shadowBlur=sz*2.5;ctx.shadowColor=`rgb(${er},${eg},${eb})`;
+        const g=ctx.createRadialGradient(x,y,0,x,y,sz);
+        g.addColorStop(0,'rgba(255,255,255,.9)');
+        g.addColorStop(.45,`rgba(${er},${eg},${eb},.6)`);
+        g.addColorStop(1,`rgba(${er},${eg},${eb},0)`);
+        ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,sz,0,Math.PI*2);ctx.fill();
+      }
+    }
+  }
+  ctx.globalAlpha=1;ctx.shadowBlur=0;ctx.restore();
+}
+
+// ══════════════════════════════════════════════════════════════
+// YILDIRIM / PLAZMA ZİNCİRLERİ
+// ══════════════════════════════════════════════════════════════
+const bolts=[];
+
+function buildBolt(x1,y1,x2,y2,depth,segs){
+  if(depth<=0){segs.push([x1,y1,x2,y2]);return;}
+  const len=Math.hypot(x2-x1,y2-y1);
+  const mx=(x1+x2)/2+(Math.random()-.5)*len*.52;
+  const my=(y1+y2)/2+(Math.random()-.5)*len*.52;
+  buildBolt(x1,y1,mx,my,depth-1,segs);
+  buildBolt(mx,my,x2,y2,depth-1,segs);
+  // dal (branch)
+  if(Math.random()<.28&&depth===2){
+    buildBolt(mx,my,
+      mx+(Math.random()-.5)*95,
+      my+(Math.random()-.5)*95,1,segs);
+  }
+}
+
+function spawnBolt(x1,y1,x2,y2){
+  const segs=[];
+  buildBolt(x1,y1,x2,y2,3,segs);
+  bolts.push({segs,life:1,decay:.065+Math.random()*.09});
+}
+
+function drawBolts(ctx){
+  const p=PAL[spell];
+  const [er,eg,eb]=[p.r,p.g,p.b];
+  for(let i=bolts.length-1;i>=0;i--){
+    const b=bolts[i];
+    b.life-=b.decay;
+    if(b.life<=0){bolts.splice(i,1);continue;}
+    ctx.save();
+    ctx.globalAlpha=b.life;
+    // dış parıltı
+    ctx.strokeStyle=`rgba(${er},${eg},${eb},.42)`;
+    ctx.lineWidth=3.8;ctx.shadowBlur=24;ctx.shadowColor=`rgb(${er},${eg},${eb})`;
+    ctx.beginPath();
+    b.segs.forEach(([x1,y1,x2,y2])=>{ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);});
+    ctx.stroke();
+    // iç çekirdek
+    ctx.strokeStyle='rgba(255,255,255,.93)';
+    ctx.lineWidth=1.1;ctx.shadowBlur=5;
+    ctx.beginPath();
+    b.segs.forEach(([x1,y1,x2,y2])=>{ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);});
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// ENERJİ TOBU (iki el arası)
+// ══════════════════════════════════════════════════════════════
+let orbData=null, orbA=0, orbP=0;
+
+function drawOrb(ctx,bloom){
+  if(!orbData) return;
+  const {x,y,r}=orbData;
+  const p=PAL[spell];
+  const [er,eg,eb]=[p.r,p.g,p.b];
+  const [cr,cg,cb]=p.core;
+  orbA+=.036; orbP+=.056;
+  const pulse=1+Math.sin(orbP)*.14;
+  ctx.save();
+  if(bloom){
+    ctx.globalAlpha=.46;
+    const bg=ctx.createRadialGradient(x,y,0,x,y,r*5.5*pulse);
+    bg.addColorStop(0,`rgba(${er},${eg},${eb},.55)`);
+    bg.addColorStop(.5,`rgba(${er},${eg},${eb},.1)`);
+    bg.addColorStop(1,`rgba(${er},${eg},${eb},0)`);
+    ctx.fillStyle=bg;ctx.beginPath();ctx.arc(x,y,r*5.5*pulse,0,Math.PI*2);ctx.fill();
+  } else {
+    // dış sis
+    ctx.globalAlpha=.16;
+    const og=ctx.createRadialGradient(x,y,0,x,y,r*3.3);
+    og.addColorStop(0,`rgba(${er},${eg},${eb},.5)`);
+    og.addColorStop(1,`rgba(${er},${eg},${eb},0)`);
+    ctx.fillStyle=og;ctx.beginPath();ctx.arc(x,y,r*3.3,0,Math.PI*2);ctx.fill();
+    // çekirdek küre
+    ctx.globalAlpha=.92;
+    ctx.shadowBlur=r*2.6;ctx.shadowColor=`rgb(${er},${eg},${eb})`;
+    const sg=ctx.createRadialGradient(x-r*.22,y-r*.22,0,x,y,r*pulse);
+    sg.addColorStop(0,`rgb(${cr},${cg},${cb})`);
+    sg.addColorStop(.22,`rgb(${er},${eg},${eb})`);
+    sg.addColorStop(.65,`rgba(${er},${eg},${eb},.44)`);
+    sg.addColorStop(1,`rgba(${er},${eg},${eb},0)`);
+    ctx.fillStyle=sg;ctx.beginPath();ctx.arc(x,y,r*pulse,0,Math.PI*2);ctx.fill();
+    // dönen yaylar
+    ctx.shadowBlur=10;
+    for(let k=0;k<4;k++){
+      const a0=orbA+k*Math.PI/2;
+      ctx.globalAlpha=.68;
+      ctx.strokeStyle=`rgba(${er},${eg},${eb},.82)`;
+      ctx.lineWidth=1.4;
+      ctx.beginPath();ctx.arc(x,y,r*.68*pulse,a0,a0+Math.PI*.88);ctx.stroke();
+    }
+    // yörüngede dönen noktalar
+    for(let k=0;k<8;k++){
+      const a=orbA*1.55+k*Math.PI/4;
+      const d=r*(1.1+Math.sin(orbP+k)*.09);
+      const sx=x+Math.cos(a)*d, sy=y+Math.sin(a)*d;
+      ctx.globalAlpha=.92;ctx.shadowBlur=6;
+      ctx.fillStyle='#fff';
+      ctx.beginPath();ctx.arc(sx,sy,1.8,0,Math.PI*2);ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+// ══════════════════════════════════════════════════════════════
+// PARMAK UCU İZLERİ (21 landmark — her parmak ayrı)
+// ══════════════════════════════════════════════════════════════
+const TIPS = [4,8,12,16,20];
+const trails = Array.from({length:2}, ()=> TIPS.map(()=>[]) );
+
+function addTP(hi,fi,x,y){
+  const t=trails[hi][fi];
+  t.push({x,y,l:1});
+  if(t.length>22) t.shift();
+}
+function updateTrails(){
+  trails.forEach(h=>h.forEach(t=>{
+    for(let i=t.length-1;i>=0;i--){
+      t[i].l-=.065;
+      if(t[i].l<=0) t.splice(i,1);
+    }
+  }));
+}
+function drawTrails(ctx){
+  const p=PAL[spell];
+  const [er,eg,eb]=[p.r,p.g,p.b];
+  ctx.save();ctx.lineCap='round';
+  trails.forEach(h=>h.forEach(trail=>{
+    if(trail.length<2) return;
+    for(let i=1;i<trail.length;i++){
+      const p0=trail[i-1],p1=trail[i];
+      ctx.globalAlpha=p1.l*.55;
+      ctx.strokeStyle=`rgba(${er},${eg},${eb},1)`;
+      ctx.lineWidth=p1.l*3.4;
+      ctx.shadowBlur=8;ctx.shadowColor=`rgb(${er},${eg},${eb})`;
+      ctx.beginPath();ctx.moveTo(p0.x,p0.y);ctx.lineTo(p1.x,p1.y);ctx.stroke();
+    }
+  }));
+  ctx.globalAlpha=1;ctx.shadowBlur=0;ctx.restore();
+}
+
+// ══════════════════════════════════════════════════════════════
+// LANDMARK → EKRAN KOORDİNATI
+// ══════════════════════════════════════════════════════════════
+function lm2s(lm){ return {x:(1-lm.x)*W, y:lm.y*H}; }
+
+function palmXY(lms){
+  const ids=[0,5,9,13,17];
+  let x=0,y=0;
+  ids.forEach(i=>{const p=lm2s(lms[i]);x+=p.x/ids.length;y+=p.y/ids.length;});
+  return {x,y};
+}
+
+// ══════════════════════════════════════════════════════════════
+// JEST ALGILAMA (21 landmark)
+// ══════════════════════════════════════════════════════════════
+function detectGesture(lms){
+  const tips=[4,8,12,16,20].map(i=>lm2s(lms[i]));
+  const pips=[3,6,10,14,18].map(i=>lm2s(lms[i]));
+  const wrist=lm2s(lms[0]);
+  const ext=[];
+  // baş parmak: x farkı
+  ext.push(Math.abs(tips[0].x-wrist.x)>Math.abs(pips[0].x-wrist.x)*.65?1:0);
+  // diğer 4: y farkı (ekranda yukarı = küçük y)
+  for(let i=1;i<5;i++) ext.push(tips[i].y<pips[i].y?1:0);
+  const tot=ext.reduce((a,b)=>a+b,0);
+  if(tot>=4)                          return 'OPEN';
+  if(tot===0)                         return 'FIST';
+  if(ext[1]&&ext[2]&&!ext[3]&&!ext[4]) return 'PEACE';
+  if(ext[1]&&!ext[2]&&!ext[3]&&!ext[4])return 'POINT';
+  if(!ext[1]&&!ext[2]&&!ext[3]&&ext[4]) return 'PINKY';
+  if(ext[0]&&!ext[1]&&!ext[2]&&!ext[3]&&ext[4]) return 'ROCK';
+  return 'PARTIAL';
+}
+
+const GLABEL={
+  OPEN   :'✋ Açık Avuç — Büyü Patlar!',
+  FIST   :'✊ Yumruk — Enerji Birikir!',
+  PEACE  :'✌️ Barış — Çift Yıldırım!',
+  POINT  :'☝️ İşaret — Lazer Odak!',
+  PINKY  :'🤙 Pinky — Wisp Akışı!',
+  ROCK   :'🤘 Rock — Kaos Fırtınası!',
+  PARTIAL:'🖐 Yarı Açık — Büyü Akar...',
+};
+
+// ══════════════════════════════════════════════════════════════
+// GESTURE → PARTİKÜL SPAWN (hız çarpanıyla)
+// ══════════════════════════════════════════════════════════════
+function spawnGesture(cx,cy,g,vel){
+  const speed=Math.hypot(vel.x,vel.y);
+  const m=intensity;
+  // hız patlaması
+  const burst=Math.min(8, 1+Math.floor(speed/10));
+
+  if(g==='OPEN'){
+    spawnP(cx,cy,0,3*m); spawnP(cx,cy,2,1*m); spawnP(cx,cy,4,2*m);
+  } else if(g==='FIST'){
+    spawnP(cx,cy,2,2*m); spawnP(cx,cy,0,3*m);
+  } else if(g==='PEACE'){
+    spawnP(cx,cy,1,3*m); spawnP(cx,cy,3,3*m);
+  } else if(g==='POINT'){
+    spawnP(cx,cy,3,5*m); spawnP(cx,cy,0,1*m);
+  } else if(g==='PINKY'){
+    spawnP(cx,cy,4,4*m); spawnP(cx,cy,0,2*m);
+  } else if(g==='ROCK'){
+    spawnP(cx,cy,1,3*m); spawnP(cx,cy,3,4*m); spawnP(cx,cy,2,2*m);
+  } else {
+    spawnP(cx,cy,0,2*m); spawnP(cx,cy,4,1*m);
+  }
+  if(speed>15) spawnP(cx,cy,3,burst*m);
+}
+
+// ══════════════════════════════════════════════════════════════
+// EL VERİSİ
+// ══════════════════════════════════════════════════════════════
+let handResults=[]; // [{lms, gesture}]
+let prevPalms=[null,null];
+let handVel=[{x:0,y:0},{x:0,y:0}];
+
+// ══════════════════════════════════════════════════════════════
+// ANA DÖNGÜ
+// ══════════════════════════════════════════════════════════════
+let frame=0, demoMode=false, demoT=0;
+
+function loop(){
+  requestAnimationFrame(loop);
+  frame++;
+
+  // akış alanını güncelle
+  updateFlow();
+
+  // ── FX canvas temizle (iz efekti için yarı şeffaf siyah) ──
+  // kamera varken üstten karartıyoruz (kamera zaten arkada)
+  fxCtx.fillStyle='rgba(0,0,0,.18)';
+  fxCtx.fillRect(0,0,W,H);
+
+  // ── Bloom temizle ──
+  blmCtx.clearRect(0,0,W,H);
+
+  // ── DEMO MOD ──
+  if(demoMode){
+    demoT+=.016;
+    const rr=Math.min(W,H)*.2;
+    handResults=[
+      {lms:makeDemoLms(W/2-rr*Math.cos(demoT)*.85, H/2+rr*Math.sin(demoT*.6)*.5), gesture:frame%200<100?'OPEN':'PEACE'},
+      {lms:makeDemoLms(W/2+rr*Math.cos(demoT+Math.PI)*.85, H/2-rr*Math.sin(demoT*.6+.5)*.5), gesture:frame%260<130?'OPEN':'POINT'},
+    ];
+  }
+
+  // ── İZLERİ GÜNCELLE ──
+  updateTrails();
+
+  // ── EL İŞLEME ──
+  let h0=null, h1=null;
+  handResults.forEach((hand,hi)=>{
+    if(!hand||!hand.lms) return;
+    const palm=palmXY(hand.lms);
+    const g=hand.gesture||'OPEN';
+
+    // hız
+    if(prevPalms[hi]){
+      handVel[hi].x=palm.x-prevPalms[hi].x;
+      handVel[hi].y=palm.y-prevPalms[hi].y;
+    }
+    prevPalms[hi]={...palm};
+
+    // her parmak ucuna efekt
+    TIPS.forEach((tipIdx,fi)=>{
+      const tip=lm2s(hand.lms[tipIdx]);
+      addTP(hi,fi,tip.x,tip.y);
+      if(frame%3===0) spawnP(tip.x,tip.y,0,1*intensity);
+      if(frame%7===0) spawnP(tip.x,tip.y,4,1*intensity);
+    });
+
+    // avuç efekti
+    if(frame%2===0) spawnGesture(palm.x,palm.y,g,handVel[hi]);
+
+    // PEACE → parmaklar arası yıldırım
+    if(g==='PEACE'&&frame%10===0){
+      const idx=lm2s(hand.lms[8]);
+      const mid=lm2s(hand.lms[12]);
+      spawnBolt(idx.x,idx.y,mid.x,mid.y);
+    }
+    // ROCK → rastgele plazma
+    if(g==='ROCK'&&frame%5===0){
+      spawnBolt(palm.x,palm.y,
+        palm.x+(Math.random()-.5)*170,
+        palm.y+(Math.random()-.5)*170);
+    }
+
+    if(hi===0) h0=palm;
+    else        h1=palm;
+  });
+
+  // ── İKİ EL — enerji tobu + yıldırım köprüsü ──
+  if(h0&&h1){
+    const dist=Math.hypot(h1.x-h0.x,h1.y-h0.y);
+    orbData={x:(h0.x+h1.x)/2,y:(h0.y+h1.y)/2,r:Math.max(20,dist*.14)};
+    if(frame%5===0) spawnBolt(h0.x,h0.y,h1.x,h1.y);
+    if(frame%2===0) spawnP(orbData.x,orbData.y,0,2*intensity);
+    if(frame%3===0) spawnP(orbData.x,orbData.y,4,2*intensity);
+  } else {
+    orbData=null;
+  }
+
+  // ── JEST ETİKETİ ──
+  if(handResults.length>0&&handResults[0]){
+    glabelEl.textContent=GLABEL[handResults[0].gesture||'OPEN']||'';
+    glabelEl.style.opacity='1';
+  } else {
+    glabelEl.style.opacity='0';
+  }
+
+  // ── ÇİZ ──
+  updateParticles();
+  drawTrails(fxCtx);
+  drawBolts(fxCtx);
+  drawOrb(fxCtx,false);
+  drawParticles(fxCtx,false);
+
+  // bloom pass
+  drawOrb(blmCtx,true);
+  drawParticles(blmCtx,true);
+}
+
+// Demo için yapay landmark
+function makeDemoLms(cx,cy){
+  return Array.from({length:21},(_,i)=>({
+    x:1-(cx+(Math.sin(i*.85)*28))/W,
+    y:(cy+(Math.cos(i*.72)*18))/H,
+    z:0
+  }));
+}
+
+// ══════════════════════════════════════════════════════════════
+// MEDİAPİPE GESTURE RECOGNIZER
+// ══════════════════════════════════════════════════════════════
+let gestureRecognizer=null;
+let camRunning=false;
+let lastVideoTime=-1;
+
+async function initMP(){
+  try{
+    loadMsg.textContent='MEDİAPİPE YÜKLENİYOR...';
+    const vision=await FilesetResolver.forVisionTasks(
+      'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm'
+    );
+    gestureRecognizer=await GestureRecognizer.createFromOptions(vision,{
+      baseOptions:{
+        modelAssetPath:'https://storage.googleapis.com/mediapipe-models/gesture_recognizer/gesture_recognizer/float16/1/gesture_recognizer.task',
+        delegate:'GPU'
+      },
+      runningMode:'VIDEO',
+      numHands:2
+    });
+    statusEl.textContent='MEDİAPİPE HAZIR — KAMERA AÇ VEYA DEMO KULLAN';
+    loadMsg.textContent='HAZIR!';
+  } catch(e){
+    statusEl.textContent='MODEL YÜKLENEMEDİ — DEMO MOD KULLAN';
+    loadMsg.textContent='DEMO MOD KULLAN';
+  }
+}
+
+// Webcam → gesture recognizer → el verisi
+function predictWebcam(){
+  if(!camRunning) return;
+  if(!gestureRecognizer){requestAnimationFrame(predictWebcam);return;}
+
+  if(video.currentTime===lastVideoTime){requestAnimationFrame(predictWebcam);return;}
+  lastVideoTime=video.currentTime;
+
+  const now=performance.now();
+  let results;
+  try{ results=gestureRecognizer.recognizeForVideo(video,now); }
+  catch(e){requestAnimationFrame(predictWebcam);return;}
+
+  if(results&&results.landmarks&&results.landmarks.length>0){
+    handResults=results.landmarks.map((lms,i)=>{
+      // GestureRecognizer'dan gesture al; yoksa landmark'tan kendimiz hesapla
+      let g='PARTIAL';
+      if(results.gestures&&results.gestures[i]&&results.gestures[i][0]){
+        const mpG=results.gestures[i][0].categoryName;
+        // MediaPipe kategori → bizim isimler
+        const MAP={
+          Open_Palm:'OPEN', Closed_Fist:'FIST',
+          Victory:'PEACE', Pointing_Up:'POINT',
+          Thumb_Up:'PINKY', ILoveYou:'ROCK', None:'PARTIAL'
+        };
+        g=MAP[mpG]||detectGesture(lms);
+      } else {
+        g=detectGesture(lms);
+      }
+      return {lms,gesture:g};
+    });
+    const g=handResults[0]?.gesture||'PARTIAL';
+    statusEl.textContent=`📷 KAMERA AKTİF  |  ${GLABEL[g]||''}`;
+  } else {
+    handResults=[];
+    statusEl.textContent='📷 KAMERA AKTİF — El Bekleniyor...';
+  }
+  requestAnimationFrame(predictWebcam);
+}
+
+// ══════════════════════════════════════════════════════════════
+// MOUSE / TOUCH FALLBACK
+// ══════════════════════════════════════════════════════════════
+let mouseGesture='OPEN';
+let mPrev={x:null,y:null};
+
+fxCvs.addEventListener('mousemove',e=>{
+  if(camRunning||demoMode) return;
+  const vel={x:mPrev.x?e.clientX-mPrev.x:0, y:mPrev.y?e.clientY-mPrev.y:0};
+  mPrev={x:e.clientX,y:e.clientY};
+  handResults=[{lms:makeDemoLms(e.clientX,e.clientY),gesture:mouseGesture}];
+  handVel[0]=vel;
+});
+fxCvs.addEventListener('mouseleave',()=>{if(!camRunning&&!demoMode) handResults=[];});
+fxCvs.addEventListener('click',()=>{
+  const gs=['OPEN','PEACE','POINT','FIST','ROCK','PINKY'];
+  mouseGesture=gs[(gs.indexOf(mouseGesture)+1)%gs.length];
+  glabelEl.textContent='Tıklayarak jest değiştirdin: '+mouseGesture;
+  glabelEl.style.opacity='1';
+});
+fxCvs.addEventListener('touchmove',e=>{
+  e.preventDefault();
+  if(camRunning||demoMode) return;
+  const t=e.touches[0];
+  handResults=[{lms:makeDemoLms(t.clientX,t.clientY),gesture:mouseGesture}];
+},{passive:false});
+fxCvs.addEventListener('touchend',()=>{if(!camRunning&&!demoMode) handResults=[];});
+
+// ══════════════════════════════════════════════════════════════
+// UI OLAYLARI
+// ══════════════════════════════════════════════════════════════
+document.getElementById('cam-btn').addEventListener('click',async()=>{
+  if(camRunning){
+    camRunning=false;
+    video.srcObject?.getTracks().forEach(t=>t.stop());
+    video.classList.remove('show');
+    document.getElementById('cam-btn').textContent='📷 KAMERA AÇ';
+    document.getElementById('cam-btn').classList.remove('on');
+    statusEl.textContent='KAMERA KAPATILDI';
+    handResults=[];
+    return;
+  }
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:1280,height:720}});
+    video.srcObject=stream;
+    await video.play();
+    video.classList.add('show');
+    camRunning=true;
+    document.getElementById('cam-btn').textContent='📷 KAPAT';
+    document.getElementById('cam-btn').classList.add('on');
+    statusEl.textContent='📷 KAMERA AKTİF — El göster!';
+    predictWebcam();
+  }catch(e){
+    statusEl.textContent='Kamera izni reddedildi — Demo kullan';
+  }
+});
+
+document.getElementById('demo-btn').addEventListener('click',()=>{
+  demoMode=!demoMode;
+  const b=document.getElementById('demo-btn');
+  b.classList.toggle('on',demoMode);
+  b.textContent=demoMode?'🎭 DEMO KAPAT':'🎭 DEMO';
+  if(demoMode) statusEl.textContent='DEMO AKTİF ✓';
+  else { handResults=[]; statusEl.textContent='DEMO KAPATILDI'; }
+});
+
+document.querySelectorAll('.sp').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.sp').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    spell=b.dataset.s;
+  });
+});
+
+document.getElementById('intensity').addEventListener('input',e=>{
+  intensity=parseInt(e.target.value);
+});
+
+// ══════════════════════════════════════════════════════════════
+// BAŞLAT
+// ══════════════════════════════════════════════════════════════
+async function boot(){
+  await initMP();
+  loop();
+  // yükleme ekranını kaldır
+  setTimeout(()=>{
+    loadEl.style.transition='opacity .9s';
+    loadEl.style.opacity='0';
+    setTimeout(()=>loadEl.remove(),.9e3);
+  },1400);
+}
+boot();
+</script>
+</body>
+</html>
