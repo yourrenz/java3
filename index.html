@@ -3,918 +3,682 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>✦ Arcane Hands — Ultimate</title>
+<title>✦ Arcane Hands Ultimate AR</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@400;600&display=swap');
-
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:#000;overflow:hidden;font-family:'Cinzel',serif;cursor:none;}
+body{background:#000;color:#ddc8ff;font-family:'Segoe UI',Arial,sans-serif;height:100vh;overflow:hidden;}
 
-/* ── 4 KATMAN: video → fx → bloom → UI ── */
-#video{
-  position:fixed;inset:0;width:100%;height:100%;
-  object-fit:cover;transform:scaleX(-1);
-  z-index:1;opacity:0;transition:opacity 1s;
-}
-#video.show{opacity:1;}
-#fx-canvas{position:fixed;inset:0;z-index:2;pointer-events:none;}
-#bloom-canvas{position:fixed;inset:0;z-index:3;pointer-events:none;mix-blend-mode:screen;opacity:.8;}
-#ui{position:fixed;inset:0;z-index:10;pointer-events:none;}
+#container{width:100%;height:100%;position:relative;display:flex;}
 
-/* ── BAŞLIK ── */
-#title{
-  position:absolute;top:22px;left:50%;transform:translateX(-50%);
-  text-align:center;white-space:nowrap;
-}
-#title h1{
-  font-family:'Cinzel Decorative',serif;
-  font-size:clamp(.85rem,2.2vw,1.7rem);
-  letter-spacing:.35em;color:#eedcff;
-  text-shadow:0 0 18px #c080ff,0 0 55px #8030cc;
-  animation:hglow 3s ease-in-out infinite;
-}
-@keyframes hglow{
-  0%,100%{text-shadow:0 0 18px #c080ff,0 0 55px #8030cc;}
-  50%{text-shadow:0 0 32px #e0b0ff,0 0 85px #b060ff,0 0 130px #7020bb;}
-}
+#video-wrapper{position:relative;width:100%;height:100%;}
+#video{width:100%;height:100%;object-fit:cover;display:none;}
 
-/* ── JEST ETIKETI ── */
-#gesture-label{
-  position:absolute;top:74px;left:50%;transform:translateX(-50%);
-  font-size:clamp(.65rem,1.3vw,.9rem);letter-spacing:.2em;
-  color:#ddc8ff;opacity:0;transition:opacity .25s;
-  text-shadow:0 0 14px #b060ff;white-space:nowrap;
-}
+#canvas{position:absolute;top:0;left:0;z-index:2;}
 
-/* ── DURUM ÇUBUĞU ── */
-#status{
-  position:absolute;bottom:86px;left:50%;transform:translateX(-50%);
-  font-size:.6rem;letter-spacing:.22em;color:#9060bb66;
-  white-space:nowrap;text-align:center;
-}
+/* ════════ TUTORIAL ════════ */
+#tutorial{position:fixed;top:15px;left:15px;z-index:20;background:rgba(0,0,0,.75);border:1px solid #b060ff;border-radius:10px;padding:15px 20px;max-width:280px;backdrop-filter:blur(10px);}
+#tutorial h3{font-size:.95rem;color:#e0b0ff;margin-bottom:10px;letter-spacing:1px;}
+#tutorial-content{font-size:.8rem;line-height:1.6;color:#ddc8ff;}
+.gesture-item{margin:8px 0;padding:8px;background:rgba(176,96,255,.15);border-left:3px solid #b060ff;border-radius:4px;}
+.gesture-key{color:#40d0ff;font-weight:600;}
 
-/* ── KONTROLLER ── */
-#controls{
-  position:absolute;bottom:20px;left:50%;transform:translateX(-50%);
-  display:flex;gap:10px;align-items:center;
-  pointer-events:all;flex-wrap:wrap;justify-content:center;
-}
-.btn{
-  background:rgba(16,3,36,.88);border:1px solid #6030aa44;
-  color:#cc9fff;padding:7px 15px;border-radius:6px;
-  font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.12em;
-  cursor:pointer;transition:all .22s;backdrop-filter:blur(10px);
-  pointer-events:all;
-}
-.btn:hover{border-color:#b060ff;box-shadow:0 0 16px #b060ff30;color:#ecd8ff;}
-.btn.on{border-color:#40d0ff;color:#40d0ff;box-shadow:0 0 14px #40d0ff30;}
+/* ════════ UI ════════ */
+#ui{position:fixed;top:0;right:0;z-index:10;padding:20px;text-align:right;}
+#title{font-size:1.3rem;letter-spacing:2px;text-shadow:0 0 15px #b060ff;margin-bottom:10px;}
+#status{background:rgba(0,0,0,.6);padding:10px 18px;border-radius:6px;border:1px solid #b060ff;font-size:.85rem;}
 
-/* ── BÜYÜ SEÇİCİ ── */
-.spell-row{display:flex;gap:7px;}
-.sp{
-  width:38px;height:38px;border-radius:50%;
-  border:2px solid #6060aa44;background:rgba(6,1,15,.88);
-  cursor:pointer;font-size:1rem;
-  display:flex;align-items:center;justify-content:center;
-  transition:all .22s;backdrop-filter:blur(8px);
-  pointer-events:all;
-}
-.sp:hover{transform:scale(1.12);}
-.sp.on{box-shadow:0 0 0 2px var(--sc),0 0 18px var(--sc);}
-.sp[data-s="arcane"]  {--sc:#b060ff;}
-.sp[data-s="electric"]{--sc:#40d0ff;}
-.sp[data-s="fire"]    {--sc:#ff5f1f;}
-.sp[data-s="ice"]     {--sc:#80f0ff;}
-.sp[data-s="divine"]  {--sc:#ffd060;}
-.sp[data-s="void"]    {--sc:#ff40a0;}
+#controls{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);z-index:10;display:flex;gap:12px;flex-wrap:wrap;justify-content:center;pointer-events:all;}
+button{background:rgba(16,3,36,.85);border:1px solid #b060ff;color:#ddc8ff;padding:10px 18px;border-radius:6px;cursor:pointer;font-size:.95rem;transition:all .3s;backdrop-filter:blur(5px);}
+button:hover{box-shadow:0 0 15px #b060ff;border-color:#e0b0ff;color:#e0b0ff;}
+button.active{background:#b060ff;color:#000;}
 
-/* ── YOĞUNLUk ── */
-#int-wrap{display:flex;align-items:center;gap:5px;color:#806099;font-size:.6rem;letter-spacing:.1em;pointer-events:all;}
-#intensity{width:70px;accent-color:#b060ff;cursor:pointer;}
+.color-buttons{display:flex;gap:8px;}
+.color-btn{width:36px;height:36px;border-radius:50%;border:2px solid #666;cursor:pointer;transition:all .2s;}
+.color-btn:hover{transform:scale(1.1);}
+.color-btn.active{box-shadow:0 0 12px currentColor;border-color:white;}
 
-/* ── YÜKLEME EKRANI ── */
-#loading{
-  position:fixed;inset:0;z-index:100;background:#000;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
-}
-#loading h2{
-  font-family:'Cinzel Decorative',serif;font-size:1.3rem;
-  letter-spacing:.3em;color:#eedcff;text-shadow:0 0 28px #b060ff;
-}
-#loading p{color:#8040aa66;font-size:.65rem;letter-spacing:.2em;}
-.lorb{
-  width:54px;height:54px;border-radius:50%;
-  background:radial-gradient(circle at 35% 35%,#f0d0ff,#b060ff,#5010aa);
-  box-shadow:0 0 30px #b060ff,0 0 60px #8030cc;
-  animation:lorb 1.4s ease-in-out infinite;
-}
-@keyframes lorb{
-  0%,100%{transform:scale(1);}
-  50%{transform:scale(1.24);}
-}
+#arcane{background:#b060ff;}
+#electric{background:#40d0ff;}
+#fire{background:#ff5f1f;}
+#ice{background:#80f0ff;}
+#divine{background:#ffd060;}
+
+/* ════════ STATS ════════ */
+#stats{position:fixed;bottom:120px;right:20px;background:rgba(0,0,0,.6);border:1px solid #40d0ff;border-radius:8px;padding:12px 18px;font-size:.75rem;color:#40d0ff;z-index:10;}
+.stat-row{margin:5px 0;}
+
+/* ════════ HAND LABELS ════════ */
+.hand-label{position:absolute;background:rgba(0,0,0,.7);border:1px solid #b060ff;border-radius:6px;padding:6px 12px;font-size:.75rem;color:#ddc8ff;pointer-events:none;z-index:5;white-space:nowrap;}
 </style>
 </head>
 <body>
 
-<!-- KATMAN 1 — Kamera -->
-<video id="video" autoplay playsinline muted></video>
+<div id="container">
+  <div id="video-wrapper">
+    <video id="video" autoplay playsinline muted></video>
+    <canvas id="canvas"></canvas>
+  </div>
+</div>
 
-<!-- KATMAN 2+3 — Efektler + Bloom -->
-<canvas id="fx-canvas"></canvas>
-<canvas id="bloom-canvas"></canvas>
-
-<!-- KATMAN 4 — UI -->
-<div id="ui">
-  <div id="title"><h1>✦ ARCANE HANDS ✦</h1></div>
-  <div id="gesture-label"></div>
-  <div id="status">KAMERA AÇ VEYA DEMO MODU DENEYEBİLİRSİN</div>
-  <div id="controls">
-    <div class="spell-row">
-      <button class="sp on" data-s="arcane"   title="Arcane">🔮</button>
-      <button class="sp"   data-s="electric" title="Electric">⚡</button>
-      <button class="sp"   data-s="fire"     title="Fire">🔥</button>
-      <button class="sp"   data-s="ice"      title="Ice">❄️</button>
-      <button class="sp"   data-s="divine"   title="Divine">✨</button>
-      <button class="sp"   data-s="void"     title="Void">🌑</button>
+<!-- TUTORIAL PANELI -->
+<div id="tutorial">
+  <h3>📚 BÜYÜ REHBERİ</h3>
+  <div id="tutorial-content">
+    <div class="gesture-item">
+      <span class="gesture-key">✋ Açık El:</span> Büyü Çemberi
     </div>
-    <button class="btn" id="cam-btn">📷 KAMERA AÇ</button>
-    <button class="btn" id="demo-btn">🎭 DEMO</button>
-    <div id="int-wrap">
-      <span>YOĞ</span>
-      <input type="range" id="intensity" min="1" max="5" value="3">
+    <div class="gesture-item">
+      <span class="gesture-key">✊ Yumruk:</span> Enerji Birikiyor
+    </div>
+    <div class="gesture-item">
+      <span class="gesture-key">✌️ Barış:</span> Çift Yıldırım
+    </div>
+    <div class="gesture-item">
+      <span class="gesture-key">☝️ İşaret:</span> Lazer Odak
+    </div>
+    <div class="gesture-item">
+      <span class="gesture-key">🤙 Pinky:</span> Wisp Akışı
+    </div>
+    <div class="gesture-item">
+      <span class="gesture-key">🤘 Rock:</span> Kaos Fırtınası
+    </div>
+    <div class="gesture-item" style="margin-top:12px;border-left-color:#40d0ff;background:rgba(64,192,255,.1);">
+      <span class="gesture-key">💡 İpucu:</span> Hızlı hareket = Güçlü efekt!
     </div>
   </div>
 </div>
 
-<!-- YÜKLEME -->
-<div id="loading">
-  <div class="lorb"></div>
-  <h2>✦ ARCANE HANDS ✦</h2>
-  <p id="load-msg">MEDİAPİPE YÜKLENİYOR...</p>
+<!-- STATUS -->
+<div id="ui">
+  <div id="title">✦ ARCANE HANDS ✦</div>
+  <div id="status">Click CAMERA</div>
 </div>
 
-<!-- MediaPipe Tasks Vision (GestureRecognizer) -->
-<script type="importmap">
-{
-  "imports": {
-    "@mediapipe/tasks-vision": "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/vision_bundle.js"
-  }
-}
-</script>
+<!-- STATS -->
+<div id="stats">
+  <div class="stat-row">Particles: <span id="particle-count">0</span></div>
+  <div class="stat-row">Hands: <span id="hand-count">0</span></div>
+  <div class="stat-row">FPS: <span id="fps-count">60</span></div>
+</div>
 
-<script type="module">
-import { GestureRecognizer, FilesetResolver } from "@mediapipe/tasks-vision";
+<!-- KONTROLLER -->
+<div id="controls">
+  <button id="cam-btn">📷 KAMERA AÇ</button>
+  <button id="demo-btn">🎭 DEMO</button>
+  
+  <div class="color-buttons">
+    <button class="color-btn active" id="arcane" data-color="arcane" title="Arcane"></button>
+    <button class="color-btn" id="electric" data-color="electric" title="Electric"></button>
+    <button class="color-btn" id="fire" data-color="fire" title="Fire"></button>
+    <button class="color-btn" id="ice" data-color="ice" title="Ice"></button>
+    <button class="color-btn" id="divine" data-color="divine" title="Divine"></button>
+  </div>
+</div>
 
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+
+<script>
 'use strict';
 
-// ══════════════════════════════════════════════════════════════
-// CANVAS & BOYUT
-// ══════════════════════════════════════════════════════════════
-const video    = document.getElementById('video');
-const fxCvs    = document.getElementById('fx-canvas');
-const blmCvs   = document.getElementById('bloom-canvas');
-const fxCtx    = fxCvs.getContext('2d');
-const blmCtx   = blmCvs.getContext('2d');
+// ════════════════════════════════════════════════════
+// CANVAS SETUP
+// ════════════════════════════════════════════════════
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d', {willReadFrequently: true});
 const statusEl = document.getElementById('status');
-const glabelEl = document.getElementById('gesture-label');
-const loadEl   = document.getElementById('loading');
-const loadMsg  = document.getElementById('load-msg');
+const camBtn = document.getElementById('cam-btn');
+const demoBtn = document.getElementById('demo-btn');
+const tutorialEl = document.getElementById('tutorial');
 
-let W = 0, H = 0;
-function resize(){
-  W = fxCvs.width  = blmCvs.width  = window.innerWidth;
-  H = fxCvs.height = blmCvs.height = window.innerHeight;
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
 }
-resize();
-window.addEventListener('resize', resize);
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
 
-// ══════════════════════════════════════════════════════════════
-// BÜYÜ PALETLERİ (FİX: tüm renkler complete)
-// ══════════════════════════════════════════════════════════════
-const PAL = {
-  arcane:   {r:180,g:96, b:255, core:[255,220,255], smoke:[100,30,160],  ember:[220,130,255]},
-  electric: {r:64, g:192,b:255, core:[255,255,255], smoke:[20,80,150],   ember:[100,210,255]},
-  fire:     {r:255,g:95, b:20,  core:[255,240,160], smoke:[70,15,8],     ember:[255,150,30] },
-  ice:      {r:100,g:220,b:255, core:[220,248,255], smoke:[30,70,110],   ember:[160,235,255]},
-  divine:   {r:255,g:195,b:80,  core:[255,255,210], smoke:[110,70,15],   ember:[255,225,110]},
-  void:     {r:255,g:60, b:155, core:[255,170,255], smoke:[35,0,55],     ember:[195,70,255] },
+// ════════════════════════════════════════════════════
+// RENKLER
+// ════════════════════════════════════════════════════
+const COLORS = {
+  arcane:   {r:176, g:96,  b:255, rgb:'176,96,255',   name:'Arcane',    hex:'#b060ff'},
+  electric: {r:64,  g:192, b:255, rgb:'64,192,255',   name:'Electric',  hex:'#40d0ff'},
+  fire:     {r:255, g:95,  b:20,  rgb:'255,95,20',    name:'Fire',      hex:'#ff5f1f'},
+  ice:      {r:100, g:220, b:255, rgb:'100,220,255',  name:'Ice',       hex:'#80f0ff'},
+  divine:   {r:255, g:195, b:80,  rgb:'255,195,80',   name:'Divine',    hex:'#ffd060'},
 };
-let spell     = 'arcane';
-let intensity = 3;
 
-// ══════════════════════════════════════════════════════════════
-// TURBULANS / AKIŞ ALANI
-// ══════════════════════════════════════════════════════════════
-const FRES = 28;
-let fCols, fRows, fField;
-let fT = 0;
+let currentColor = 'arcane';
+let currentIntensity = 1;
 
-function buildFlow(){
-  fCols = Math.ceil(W/FRES) + 1;
-  fRows = Math.ceil(H/FRES) + 1;
-  fField = new Float32Array(fCols * fRows * 2);
-}
-buildFlow();
-window.addEventListener('resize', buildFlow);
+// ════════════════════════════════════════════════════
+// PARTIKÜLLER
+// ════════════════════════════════════════════════════
+const MAX_PARTICLES = 1500;
+const particles = [];
 
-function noise2(x,y){
-  return ((Math.sin(x*127.1 + y*311.7) * 43758.5453) % 1) * 0.5
-       + ((Math.sin(x*269.5 + y*183.3) * 43758.5453) % 1) * 0.3
-       + ((Math.sin(x*419.2 + y*371.9) * 43758.5453) % 1) * 0.2;
-}
-
-function updateFlow(){
-  fT += 0.0032;
-  for(let y=0; y<fRows; y++){
-    for(let x=0; x<fCols; x++){
-      const i = (y*fCols+x)*2;
-      const n = noise2(x*0.07 + fT, y*0.07 + fT*0.55);
-      const a = n * Math.PI * 4;
-      fField[i]   = Math.cos(a);
-      fField[i+1] = Math.sin(a);
-    }
-  }
-}
-
-function flowAt(px, py){
-  const cx = Math.min(fCols-1, Math.max(0, Math.floor(px/FRES)));
-  const cy = Math.min(fRows-1, Math.max(0, Math.floor(py/FRES)));
-  const i  = (cy*fCols+cx)*2;
-  return {x: fField[i], y: fField[i+1]};
-}
-
-// ══════════════════════════════════════════════════════════════
-// PARTİKÜL SİSTEMİ
-// ══════════════════════════════════════════════════════════════
-const MAX_P = 2200;
-const px_  = new Float32Array(MAX_P);
-const py_  = new Float32Array(MAX_P);
-const pvx  = new Float32Array(MAX_P);
-const pvy  = new Float32Array(MAX_P);
-const plf  = new Float32Array(MAX_P);
-const pdc  = new Float32Array(MAX_P);
-const psz  = new Float32Array(MAX_P);
-const pty  = new Uint8Array(MAX_P);
-const psp  = new Uint8Array(MAX_P);
-const pac  = new Uint8Array(MAX_P);
-let   pH   = 0;
-
-const SPIDX  = {arcane:0,electric:1,fire:2,ice:3,divine:4,void:5};
-const SPLIST = ['arcane','electric','fire','ice','divine','void'];
-
-function spawnP(x, y, type, count){
-  const si = SPIDX[spell];
-  const m  = intensity / 3;
-  for(let n=0; n<count; n++){
-    let idx = -1;
-    for(let k=0; k<MAX_P; k++){
-      const p=(pH+k)%MAX_P;
-      if(!pac[p]){idx=p;break;}
-    }
-    if(idx<0) idx=pH%MAX_P;
-    pH=(pH+1)%MAX_P;
-
-    px_[idx]=x+(Math.random()-.5)*8;
-    py_[idx]=y+(Math.random()-.5)*8;
-    psp[idx]=si;
-    pty[idx]=type;
-    pac[idx]=1;
-    plf[idx]=1;
-
-    if(type===0){           // ORB
-      pvx[idx]=(Math.random()-.5)*1.2;
-      pvy[idx]=(Math.random()-.5)*1.2;
-      pdc[idx]=0.007+Math.random()*0.006;
-      psz[idx]=(3+Math.random()*7)*m;
-    } else if(type===1){    // EMBER
-      const a=Math.random()*Math.PI*2;
-      const sp=(1.5+Math.random()*4.5)*m;
-      pvx[idx]=Math.cos(a)*sp;
-      pvy[idx]=Math.sin(a)*sp-2;
-      pdc[idx]=0.022+Math.random()*0.03;
-      psz[idx]=(1+Math.random()*3)*m;
-    } else if(type===2){    // SMOKE
-      pvx[idx]=(Math.random()-.5)*0.6;
-      pvy[idx]=-(Math.random()*1.1+0.25);
-      pdc[idx]=0.0038+Math.random()*0.004;
-      psz[idx]=(14+Math.random()*32)*m;
-    } else if(type===3){    // SPARK
-      const a=Math.random()*Math.PI*2;
-      const sp=(3+Math.random()*9)*m;
-      pvx[idx]=Math.cos(a)*sp;
-      pvy[idx]=Math.sin(a)*sp;
-      pdc[idx]=0.038+Math.random()*0.05;
-      psz[idx]=(0.7+Math.random()*2.2)*m;
-    } else {                // WISP
-      pvx[idx]=(Math.random()-.5)*0.45;
-      pvy[idx]=-(Math.random()*0.8+0.4);
-      pdc[idx]=0.0075+Math.random()*0.005;
-      psz[idx]=(5+Math.random()*12)*m;
-    }
-  }
-}
-
-function updateParticles(){
-  for(let i=0; i<MAX_P; i++){
-    if(!pac[i]) continue;
-    plf[i]-=pdc[i];
-    if(plf[i]<=0){pac[i]=0;continue;}
-
-    const f  = flowAt(px_[i],py_[i]);
-    const fi = pty[i]===0 ? 0.17 : pty[i]===4 ? 0.23 : pty[i]===2 ? 0.05 : 0.018;
-    pvx[i]+=f.x*fi;
-    pvy[i]+=f.y*fi;
-
-    if(pty[i]===1) pvy[i]+=0.058;
-    if(pty[i]===3) pvy[i]+=0.022;
-
-    const d = pty[i]===2 ? 0.988 : 0.961;
-    pvx[i]*=d;
-    pvy[i]*=d;
-
-    px_[i]+=pvx[i];
-    py_[i]+=pvy[i];
+class Particle {
+  constructor(x, y, color, type = 'normal') {
+    this.x = x;
+    this.y = y;
+    this.color = color;
+    this.type = type;
     
-    if(px_[i]<-100||px_[i]>W+100||py_[i]<-100||py_[i]>H+100) pac[i]=0;
-  }
-}
-
-function drawParticles(ctx, bloom){
-  ctx.save();
-  for(let i=0; i<MAX_P; i++){
-    if(!pac[i]) continue;
-    const s  = SPLIST[psp[i]];
-    const p  = PAL[s];
-    const a  = plf[i];
-    const t  = pty[i];
-    const sz = psz[i];
-    const x  = px_[i];
-    const y  = py_[i];
-
-    if(t===2){                          // SMOKE
-      if(bloom) continue;
-      const [sr,sg,sb]=p.smoke;
-      ctx.globalAlpha=a*0.075;
-      const g=ctx.createRadialGradient(x,y,0,x,y,sz*(2-a*0.5));
-      g.addColorStop(0,`rgba(${sr},${sg},${sb},1)`);
-      g.addColorStop(1,`rgba(${sr},${sg},${sb},0)`);
-      ctx.fillStyle=g;
-      ctx.beginPath();ctx.arc(x,y,sz*(2-a*0.5),0,Math.PI*2);ctx.fill();
-
-    } else if(t===0){                   // ORB
-      const [er,eg,eb]=[p.r,p.g,p.b];
-      const [cr,cg,cb]=p.core;
-      if(bloom){
-        ctx.globalAlpha=a*0.58;
-        const bg=ctx.createRadialGradient(x,y,0,x,y,sz*5.5);
-        bg.addColorStop(0,`rgba(${er},${eg},${eb},0.55)`);
-        bg.addColorStop(1,`rgba(${er},${eg},${eb},0)`);
-        ctx.fillStyle=bg;ctx.beginPath();ctx.arc(x,y,sz*5.5,0,Math.PI*2);ctx.fill();
-      } else {
-        ctx.globalAlpha=a;
-        ctx.shadowBlur=sz*3.5;ctx.shadowColor=`rgb(${er},${eg},${eb})`;
-        const g=ctx.createRadialGradient(x,y,0,x,y,sz);
-        g.addColorStop(0,`rgba(${cr},${cg},${cb},1)`);
-        g.addColorStop(0.35,`rgba(${er},${eg},${eb},0.9)`);
-        g.addColorStop(1,`rgba(${er},${eg},${eb},0)`);
-        ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,sz,0,Math.PI*2);ctx.fill();
-      }
-
-    } else if(t===1||t===3){            // EMBER / SPARK
-      const [er,eg,eb]=p.ember;
-      const bsz=t===3?sz*0.42:sz;
-      if(bloom){
-        ctx.globalAlpha=a*0.45;
-        const bg=ctx.createRadialGradient(x,y,0,x,y,bsz*6.5);
-        bg.addColorStop(0,`rgba(${er},${eg},${eb},0.38)`);
-        bg.addColorStop(1,`rgba(${er},${eg},${eb},0)`);
-        ctx.fillStyle=bg;ctx.beginPath();ctx.arc(x,y,bsz*6.5,0,Math.PI*2);ctx.fill();
-      } else {
-        ctx.globalAlpha=a;
-        ctx.shadowBlur=bsz*4;ctx.shadowColor=`rgb(${er},${eg},${eb})`;
-        ctx.fillStyle='#fff';
-        ctx.beginPath();ctx.arc(x,y,bsz,0,Math.PI*2);ctx.fill();
-      }
-
-    } else {                            // WISP
-      const [er,eg,eb]=[p.r,p.g,p.b];
-      if(bloom){
-        ctx.globalAlpha=a*0.65;
-        const bg=ctx.createRadialGradient(x,y,0,x,y,sz*3.5);
-        bg.addColorStop(0,`rgba(${er},${eg},${eb},0.52)`);
-        bg.addColorStop(1,`rgba(${er},${eg},${eb},0)`);
-        ctx.fillStyle=bg;ctx.beginPath();ctx.arc(x,y,sz*3.5,0,Math.PI*2);ctx.fill();
-      } else {
-        ctx.globalAlpha=a*0.88;
-        ctx.shadowBlur=sz*2.5;ctx.shadowColor=`rgb(${er},${eg},${eb})`;
-        const g=ctx.createRadialGradient(x,y,0,x,y,sz);
-        g.addColorStop(0,'rgba(255,255,255,0.9)');
-        g.addColorStop(0.45,`rgba(${er},${eg},${eb},0.6)`);
-        g.addColorStop(1,`rgba(${er},${eg},${eb},0)`);
-        ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,sz,0,Math.PI*2);ctx.fill();
-      }
+    if (type === 'snow') { // KAR TANESİ
+      this.vx = (Math.random() - 0.5) * 0.8;
+      this.vy = Math.random() * 1 + 0.5;
+      this.life = 1;
+      this.decay = 0.004 + Math.random() * 0.002;
+      this.size = Math.random() * 3 + 1;
+      this.rotation = Math.random() * Math.PI * 2;
+      this.rotSpeed = (Math.random() - 0.5) * 0.08;
+      this.wobble = Math.random() * Math.PI * 2;
+    } else if (type === 'ember') { // ATEŞ
+      this.vx = (Math.random() - 0.5) * 3;
+      this.vy = -(Math.random() * 3 + 2.5);
+      this.life = 1;
+      this.decay = 0.04 + Math.random() * 0.03;
+      this.size = Math.random() * 14 + 6;
+      this.wobble = Math.random() * Math.PI * 2;
+      this.glow = 1;
+    } else if (type === 'smoke') { // IŞIK DUMANI
+      this.vx = (Math.random() - 0.5) * 1.2;
+      this.vy = Math.random() * -2 - 0.8;
+      this.life = 1;
+      this.decay = 0.006 + Math.random() * 0.004;
+      this.size = Math.random() * 30 + 20;
+      this.rotation = Math.random() * Math.PI * 2;
+      this.rotSpeed = (Math.random() - 0.5) * 0.04;
+      this.expansion = 1;
+    } else if (type === 'spark') { // ÇAKIŞAN ÇIZGILER
+      const angle = Math.random() * Math.PI * 2;
+      const speed = Math.random() * 7 + 4;
+      this.vx = Math.cos(angle) * speed;
+      this.vy = Math.sin(angle) * speed;
+      this.life = 1;
+      this.decay = 0.05 + Math.random() * 0.04;
+      this.size = Math.random() * 2.5 + 0.5;
+      this.trail = [];
+    } else if (type === 'orb') { // BÜYÜ KÜRESI
+      const angle = Math.random() * Math.PI * 2;
+      const speed = Math.random() * 1.5 + 0.5;
+      this.vx = Math.cos(angle) * speed;
+      this.vy = Math.sin(angle) * speed;
+      this.life = 1;
+      this.decay = 0.015 + Math.random() * 0.01;
+      this.size = Math.random() * 6 + 3;
+      this.pulse = Math.random();
+    } else { // NORMAL
+      const angle = Math.random() * Math.PI * 2;
+      const speed = Math.random() * 2 + 0.8;
+      this.vx = Math.cos(angle) * speed;
+      this.vy = Math.sin(angle) * speed;
+      this.life = 1;
+      this.decay = 0.018 + Math.random() * 0.015;
+      this.size = Math.random() * 8 + 2;
     }
   }
-  ctx.globalAlpha=1;ctx.shadowBlur=0;ctx.restore();
-}
 
-// ══════════════════════════════════════════════════════════════
-// YILDIRIM ZİNCİRLERİ
-// ══════════════════════════════════════════════════════════════
-const bolts=[];
-
-function buildBolt(x1,y1,x2,y2,depth,segs){
-  if(depth<=0){segs.push([x1,y1,x2,y2]);return;}
-  const len=Math.hypot(x2-x1,y2-y1);
-  const mx=(x1+x2)/2+(Math.random()-.5)*len*0.52;
-  const my=(y1+y2)/2+(Math.random()-.5)*len*0.52;
-  buildBolt(x1,y1,mx,my,depth-1,segs);
-  buildBolt(mx,my,x2,y2,depth-1,segs);
-  if(Math.random()<0.28&&depth===2){
-    buildBolt(mx,my,
-      mx+(Math.random()-.5)*95,
-      my+(Math.random()-.5)*95,1,segs);
+  update() {
+    this.x += this.vx;
+    this.y += this.vy;
+    
+    if (this.type === 'snow') {
+      this.wobble += 0.05;
+      this.vx += Math.sin(this.wobble) * 0.02;
+    }
+    if (this.type === 'ember') {
+      this.vy -= 0.15;
+      this.wobble += 0.06;
+      this.glow *= 0.98;
+    }
+    if (this.type === 'smoke') {
+      this.expansion += 0.01;
+    }
+    if (this.type === 'spark') {
+      this.vy += 0.08;
+    }
+    if (this.type === 'orb') {
+      this.pulse += 0.03;
+    }
+    
+    this.vx *= 0.95;
+    this.vy *= 0.95;
+    this.life -= this.decay;
+    if (this.size > 0.3) this.size *= 0.96;
   }
-}
 
-function spawnBolt(x1,y1,x2,y2){
-  const segs=[];
-  buildBolt(x1,y1,x2,y2,3,segs);
-  bolts.push({segs,life:1,decay:0.065+Math.random()*0.09});
-}
+  draw(ctx, color) {
+    if (this.life <= 0) return;
 
-function drawBolts(ctx){
-  const p=PAL[spell];
-  const [er,eg,eb]=[p.r,p.g,p.b];
-  for(let i=bolts.length-1;i>=0;i--){
-    const b=bolts[i];
-    b.life-=b.decay;
-    if(b.life<=0){bolts.splice(i,1);continue;}
     ctx.save();
-    ctx.globalAlpha=b.life;
-    ctx.strokeStyle=`rgba(${er},${eg},${eb},0.42)`;
-    ctx.lineWidth=3.8;ctx.shadowBlur=24;ctx.shadowColor=`rgb(${er},${eg},${eb})`;
-    ctx.beginPath();
-    b.segs.forEach(([x1,y1,x2,y2])=>{ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);});
-    ctx.stroke();
-    ctx.strokeStyle='rgba(255,255,255,0.93)';
-    ctx.lineWidth=1.1;ctx.shadowBlur=5;
-    ctx.beginPath();
-    b.segs.forEach(([x1,y1,x2,y2])=>{ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);});
-    ctx.stroke();
+
+    if (this.type === 'snow') { // KAR TANESİ
+      ctx.globalAlpha = this.life * 0.7;
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.rotation);
+      
+      ctx.strokeStyle = `rgba(${color.rgb},${this.life})`;
+      ctx.lineWidth = this.size * 0.5;
+      ctx.lineCap = 'round';
+      
+      // 6 kollu kar tanesi
+      for (let i = 0; i < 6; i++) {
+        const a = (i * Math.PI) / 3;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.cos(a) * this.size * 2, Math.sin(a) * this.size * 2);
+        ctx.stroke();
+      }
+
+    } else if (this.type === 'ember') { // ATEŞ
+      const wobbleX = Math.sin(this.wobble) * 2;
+      ctx.globalAlpha = Math.max(0, this.life * this.glow);
+      ctx.shadowBlur = this.size * 4;
+      ctx.shadowColor = `rgb(${color.rgb})`;
+      
+      const grad = ctx.createRadialGradient(
+        this.x + wobbleX, this.y, 0,
+        this.x, this.y, this.size
+      );
+      grad.addColorStop(0, `rgba(255,220,0,${this.life})`);
+      grad.addColorStop(0.4, `rgba(${color.rgb},${this.life * 0.8})`);
+      grad.addColorStop(1, `rgba(${color.rgb},0)`);
+      
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fill();
+
+    } else if (this.type === 'smoke') { // IŞIK DUMANI
+      ctx.globalAlpha = this.life * 0.15;
+      ctx.translate(this.x, this.y);
+      if (this.rotation) ctx.rotate(this.rotation);
+      
+      const expandedSize = this.size * this.expansion;
+      const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, expandedSize);
+      grad.addColorStop(0, `rgba(${color.rgb},${this.life * 0.5})`);
+      grad.addColorStop(0.5, `rgba(${color.rgb},${this.life * 0.2})`);
+      grad.addColorStop(1, `rgba(${color.rgb},0)`);
+      
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(0, 0, expandedSize, 0, Math.PI * 2);
+      ctx.fill();
+
+    } else if (this.type === 'spark') { // ÇAKIŞAN ÇIZGILER
+      ctx.globalAlpha = this.life * 0.8;
+      ctx.strokeStyle = `rgba(${color.rgb},${this.life})`;
+      ctx.lineWidth = this.size * 3;
+      ctx.lineCap = 'round';
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = `rgb(${color.rgb})`;
+      
+      ctx.beginPath();
+      ctx.moveTo(this.x - this.vx * 3, this.y - this.vy * 3);
+      ctx.lineTo(this.x, this.y);
+      ctx.stroke();
+
+    } else if (this.type === 'orb') { // BÜYÜ KÜRESI
+      ctx.globalAlpha = this.life * 0.9;
+      const pulseSize = this.size * (1 + Math.sin(this.pulse) * 0.2);
+      
+      ctx.shadowBlur = pulseSize * 3;
+      ctx.shadowColor = `rgb(${color.rgb})`;
+      
+      const grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, pulseSize);
+      grad.addColorStop(0, `rgba(255,255,255,${this.life})`);
+      grad.addColorStop(0.3, `rgba(${color.rgb},${this.life * 0.9})`);
+      grad.addColorStop(1, `rgba(${color.rgb},0)`);
+      
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, pulseSize, 0, Math.PI * 2);
+      ctx.fill();
+
+    } else { // NORMAL
+      ctx.globalAlpha = this.life * 0.8;
+      ctx.shadowBlur = this.size * 2;
+      ctx.shadowColor = `rgb(${color.rgb})`;
+      
+      const grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size);
+      grad.addColorStop(0, `rgba(255,255,255,${this.life})`);
+      grad.addColorStop(0.4, `rgba(${color.rgb},${this.life * 0.9})`);
+      grad.addColorStop(1, `rgba(${color.rgb},0)`);
+      
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
     ctx.restore();
   }
 }
 
-// ══════════════════════════════════════════════════════════════
-// ENERJİ TOBU
-// ══════════════════════════════════════════════════════════════
-let orbData=null, orbA=0, orbP=0;
-
-function drawOrb(ctx,bloom){
-  if(!orbData) return;
-  const {x,y,r}=orbData;
-  const p=PAL[spell];
-  const [er,eg,eb]=[p.r,p.g,p.b];
-  const [cr,cg,cb]=p.core;
-  orbA+=0.036;
-  orbP+=0.056;
-  const pulse=1+Math.sin(orbP)*0.14;
-  ctx.save();
-  if(bloom){
-    ctx.globalAlpha=0.46;
-    const bg=ctx.createRadialGradient(x,y,0,x,y,r*5.5*pulse);
-    bg.addColorStop(0,`rgba(${er},${eg},${eb},0.55)`);
-    bg.addColorStop(0.5,`rgba(${er},${eg},${eb},0.1)`);
-    bg.addColorStop(1,`rgba(${er},${eg},${eb},0)`);
-    ctx.fillStyle=bg;ctx.beginPath();ctx.arc(x,y,r*5.5*pulse,0,Math.PI*2);ctx.fill();
-  } else {
-    ctx.globalAlpha=0.16;
-    const og=ctx.createRadialGradient(x,y,0,x,y,r*3.3);
-    og.addColorStop(0,`rgba(${er},${eg},${eb},0.5)`);
-    og.addColorStop(1,`rgba(${er},${eg},${eb},0)`);
-    ctx.fillStyle=og;ctx.beginPath();ctx.arc(x,y,r*3.3,0,Math.PI*2);ctx.fill();
-    ctx.globalAlpha=0.92;
-    ctx.shadowBlur=r*2.6;ctx.shadowColor=`rgb(${er},${eg},${eb})`;
-    const sg=ctx.createRadialGradient(x-r*0.22, y-r*0.22, 0, x, y, r*pulse);
-    sg.addColorStop(0,`rgb(${cr},${cg},${cb})`);
-    sg.addColorStop(0.22,`rgb(${er},${eg},${eb})`);
-    sg.addColorStop(0.65,`rgba(${er},${eg},${eb},0.44)`);
-    sg.addColorStop(1,`rgba(${er},${eg},${eb},0)`);
-    ctx.fillStyle=sg;ctx.beginPath();ctx.arc(x,y,r*pulse,0,Math.PI*2);ctx.fill();
-    ctx.shadowBlur=10;
-    for(let k=0;k<4;k++){
-      const a0=orbA+k*Math.PI/2;
-      ctx.globalAlpha=0.68;
-      ctx.strokeStyle=`rgba(${er},${eg},${eb},0.82)`;
-      ctx.lineWidth=1.4;
-      ctx.beginPath();ctx.arc(x,y,r*0.68*pulse,a0,a0+Math.PI*0.88);ctx.stroke();
-    }
-    for(let k=0;k<8;k++){
-      const a=orbA*1.55+k*Math.PI/4;
-      const d=r*(1.1+Math.sin(orbP+k)*0.09);
-      const sx=x+Math.cos(a)*d;
-      const sy=y+Math.sin(a)*d;
-      ctx.globalAlpha=0.92;ctx.shadowBlur=6;
-      ctx.fillStyle='#fff';
-      ctx.beginPath();ctx.arc(sx,sy,1.8,0,Math.PI*2);ctx.fill();
-    }
+function spawnParticles(x, y, count = 8, types = ['normal']) {
+  if (particles.length >= MAX_PARTICLES) return;
+  
+  const color = COLORS[currentColor];
+  for (let i = 0; i < count && particles.length < MAX_PARTICLES; i++) {
+    const type = types[Math.floor(Math.random() * types.length)];
+    particles.push(new Particle(x, y, color, type));
   }
-  ctx.restore();
 }
 
-// ══════════════════════════════════════════════════════════════
-// PARMAK UCU İZLERİ
-// ══════════════════════════════════════════════════════════════
-const TIPS = [4,8,12,16,20];
-const trails = Array.from({length:2}, ()=> TIPS.map(()=>[]) );
+// ════════════════════════════════════════════════════
+// HAND DETECTION
+// ════════════════════════════════════════════════════
+let hands = null;
+let handLandmarks = [];
+let handGestures = [];
+let cameraActive = false;
 
-function addTP(hi,fi,x,y){
-  const t=trails[hi][fi];
-  t.push({x,y,l:1});
-  if(t.length>22) t.shift();
+async function initHands() {
+  try {
+    hands = new Hands({
+      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+    });
+    hands.setOptions({
+      maxNumHands: 2,
+      modelComplexity: 1,
+      minDetectionConfidence: 0.7,
+      minTrackingConfidence: 0.5
+    });
+    hands.onResults(onHandsResults);
+    statusEl.textContent = '✓ Ready — Click CAMERA';
+  } catch (e) {
+    statusEl.textContent = '⚠ Use DEMO mode';
+    console.error(e);
+  }
 }
 
-function updateTrails(){
-  trails.forEach(h=>h.forEach(t=>{
-    for(let i=t.length-1;i>=0;i--){
-      t[i].l-=0.065;
-      if(t[i].l<=0) t.splice(i,1);
-    }
-  }));
+function onHandsResults(results) {
+  handLandmarks = results.multiHandLandmarks || [];
 }
 
-function drawTrails(ctx){
-  const p=PAL[spell];
-  const [er,eg,eb]=[p.r,p.g,p.b];
-  ctx.save();
-  ctx.lineCap='round';
-  trails.forEach(h=>h.forEach(trail=>{
-    if(trail.length<2) return;
-    for(let i=1;i<trail.length;i++){
-      const p0=trail[i-1];
-      const p1=trail[i];
-      ctx.globalAlpha=p1.l*0.55;
-      ctx.strokeStyle=`rgba(${er},${eg},${eb},1)`;
-      ctx.lineWidth=p1.l*3.4;
-      ctx.shadowBlur=8;ctx.shadowColor=`rgb(${er},${eg},${eb})`;
-      ctx.beginPath();ctx.moveTo(p0.x,p0.y);ctx.lineTo(p1.x,p1.y);ctx.stroke();
-    }
-  }));
-  ctx.globalAlpha=1;ctx.shadowBlur=0;ctx.restore();
-}
-
-// ══════════════════════════════════════════════════════════════
-// LANDMARK KOORDİNATI DÖNÜŞTÜRME
-// ══════════════════════════════════════════════════════════════
-function lm2s(lm){ 
-  return {x:(1-lm.x)*W, y:lm.y*H};
-}
-
-function palmXY(lms){
-  const ids=[0,5,9,13,17];
-  let x=0,y=0;
-  ids.forEach(i=>{
-    const p=lm2s(lms[i]);
-    x+=p.x/ids.length;
-    y+=p.y/ids.length;
-  });
-  return {x,y};
-}
-
-// ══════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════
 // JEST ALGILAMA
-// ══════════════════════════════════════════════════════════════
-function detectGesture(lms){
-  const tips=[4,8,12,16,20].map(i=>lm2s(lms[i]));
-  const pips=[3,6,10,14,18].map(i=>lm2s(lms[i]));
-  const wrist=lm2s(lms[0]);
-  const ext=[];
+// ════════════════════════════════════════════════════
+function detectGesture(landmarks) {
+  const tips = [4, 8, 12, 16, 20].map(i => landmarks[i]);
+  const pips = [3, 6, 10, 14, 18].map(i => landmarks[i]);
+  const wrist = landmarks[0];
   
-  ext.push(Math.abs(tips[0].x-wrist.x)>Math.abs(pips[0].x-wrist.x)*0.65?1:0);
-  for(let i=1;i<5;i++) ext.push(tips[i].y<pips[i].y?1:0);
-  const tot=ext.reduce((a,b)=>a+b,0);
+  let extended = 0;
+  extended += Math.abs(tips[0].x - wrist.x) > Math.abs(pips[0].x - wrist.x) * 0.6 ? 1 : 0;
+  for (let i = 1; i < 5; i++) {
+    extended += tips[i].y < pips[i].y ? 1 : 0;
+  }
   
-  if(tot>=4)                          return 'OPEN';
-  if(tot===0)                         return 'FIST';
-  if(ext[1]&&ext[2]&&!ext[3]&&!ext[4]) return 'PEACE';
-  if(ext[1]&&!ext[2]&&!ext[3]&&!ext[4])return 'POINT';
-  if(!ext[1]&&!ext[2]&&!ext[3]&&ext[4]) return 'PINKY';
-  if(ext[0]&&!ext[1]&&!ext[2]&&!ext[3]&&ext[4]) return 'ROCK';
+  if (extended >= 4) return 'OPEN';
+  if (extended === 0) return 'FIST';
+  if (extended === 2 && tips[1].y < pips[1].y && tips[2].y < pips[2].y) return 'PEACE';
+  if (extended === 1 && tips[1].y < pips[1].y) return 'POINT';
+  if (!extended && tips[4].y < pips[4].y) return 'PINKY';
+  if (tips[0].x < wrist.x && !extended && tips[4].y < pips[4].y) return 'ROCK';
   return 'PARTIAL';
 }
 
-const GLABEL={
-  OPEN   :'✋ Açık Avuç — Büyü Patlar!',
-  FIST   :'✊ Yumruk — Enerji Birikir!',
-  PEACE  :'✌️ Barış — Çift Yıldırım!',
-  POINT  :'☝️ İşaret — Lazer Odak!',
-  PINKY  :'🤙 Pinky — Wisp Akışı!',
-  ROCK   :'🤘 Rock — Kaos Fırtınası!',
-  PARTIAL:'🖐 Yarı Açık — Büyü Akar...',
+const GESTURE_EFFECTS = {
+  OPEN: {types: ['orb', 'smoke', 'normal'], count: 12},
+  FIST: {types: ['ember', 'smoke'], count: 8},
+  PEACE: {types: ['spark', 'spark', 'spark'], count: 15},
+  POINT: {types: ['spark', 'spark', 'spark'], count: 20},
+  PINKY: {types: ['snow', 'normal', 'normal'], count: 10},
+  ROCK: {types: ['ember', 'spark', 'ember'], count: 18},
+  PARTIAL: {types: ['normal', 'normal'], count: 5}
 };
 
-// ══════════════════════════════════════════════════════════════
-// GESTURE → PARTIKÜLLER
-// ══════════════════════════════════════════════════════════════
-function spawnGesture(cx,cy,g,vel){
-  const speed=Math.hypot(vel.x,vel.y);
-  const m=intensity;
-  const burst=Math.min(8, 1+Math.floor(speed/10));
-
-  if(g==='OPEN'){
-    spawnP(cx,cy,0,3*m); spawnP(cx,cy,2,1*m); spawnP(cx,cy,4,2*m);
-  } else if(g==='FIST'){
-    spawnP(cx,cy,2,2*m); spawnP(cx,cy,0,3*m);
-  } else if(g==='PEACE'){
-    spawnP(cx,cy,1,3*m); spawnP(cx,cy,3,3*m);
-  } else if(g==='POINT'){
-    spawnP(cx,cy,3,5*m); spawnP(cx,cy,0,1*m);
-  } else if(g==='PINKY'){
-    spawnP(cx,cy,4,4*m); spawnP(cx,cy,0,2*m);
-  } else if(g==='ROCK'){
-    spawnP(cx,cy,1,3*m); spawnP(cx,cy,3,4*m); spawnP(cx,cy,2,2*m);
-  } else {
-    spawnP(cx,cy,0,2*m); spawnP(cx,cy,4,1*m);
-  }
-  if(speed>15) spawnP(cx,cy,3,burst*m);
+// ════════════════════════════════════════════════════
+// LANDMARK KOORDİNATI
+// ════════════════════════════════════════════════════
+function getLandmarkScreen(lm) {
+  return {
+    x: (1 - lm.x) * canvas.width,
+    y: lm.y * canvas.height
+  };
 }
 
-// ══════════════════════════════════════════════════════════════
-// EL VERİSİ
-// ══════════════════════════════════════════════════════════════
-let handResults=[];
-let prevPalms=[null,null];
-let handVel=[{x:0,y:0},{x:0,y:0}];
-
-// ══════════════════════════════════════════════════════════════
-// ANA DÖNGÜ
-// ══════════════════════════════════════════════════════════════
-let frame=0, demoMode=false, demoT=0;
-
-function loop(){
-  requestAnimationFrame(loop);
-  frame++;
-
-  updateFlow();
-
-  fxCtx.fillStyle='rgba(0,0,0,0.18)';
-  fxCtx.fillRect(0,0,W,H);
-
-  blmCtx.clearRect(0,0,W,H);
-
-  if(demoMode){
-    demoT+=0.016;
-    const rr=Math.min(W,H)*0.2;
-    handResults=[
-      {lms:makeDemoLms(W/2-rr*Math.cos(demoT)*0.85, H/2+rr*Math.sin(demoT*0.6)*0.5), gesture:frame%200<100?'OPEN':'PEACE'},
-      {lms:makeDemoLms(W/2+rr*Math.cos(demoT+Math.PI)*0.85, H/2-rr*Math.sin(demoT*0.6+0.5)*0.5), gesture:frame%260<130?'OPEN':'POINT'},
-    ];
-  }
-
-  updateTrails();
-
-  let h0=null, h1=null;
-  handResults.forEach((hand,hi)=>{
-    if(!hand||!hand.lms) return;
-    const palm=palmXY(hand.lms);
-    const g=hand.gesture||'OPEN';
-
-    if(prevPalms[hi]){
-      handVel[hi].x=palm.x-prevPalms[hi].x;
-      handVel[hi].y=palm.y-prevPalms[hi].y;
-    }
-    prevPalms[hi]={...palm};
-
-    TIPS.forEach((tipIdx,fi)=>{
-      const tip=lm2s(hand.lms[tipIdx]);
-      addTP(hi,fi,tip.x,tip.y);
-      if(frame%3===0) spawnP(tip.x,tip.y,0,1*intensity);
-      if(frame%7===0) spawnP(tip.x,tip.y,4,1*intensity);
-    });
-
-    if(frame%2===0) spawnGesture(palm.x,palm.y,g,handVel[hi]);
-
-    if(g==='PEACE'&&frame%10===0){
-      const idx=lm2s(hand.lms[8]);
-      const mid=lm2s(hand.lms[12]);
-      spawnBolt(idx.x,idx.y,mid.x,mid.y);
-    }
-    if(g==='ROCK'&&frame%5===0){
-      spawnBolt(palm.x,palm.y,
-        palm.x+(Math.random()-.5)*170,
-        palm.y+(Math.random()-.5)*170);
-    }
-
-    if(hi===0) h0=palm;
-    else        h1=palm;
+function getPalmCenter(landmarks) {
+  const indices = [0, 5, 9, 13, 17];
+  let x = 0, y = 0;
+  indices.forEach(i => {
+    const p = getLandmarkScreen(landmarks[i]);
+    x += p.x / indices.length;
+    y += p.y / indices.length;
   });
-
-  if(h0&&h1){
-    const dist=Math.hypot(h1.x-h0.x,h1.y-h0.y);
-    orbData={x:(h0.x+h1.x)/2,y:(h0.y+h1.y)/2,r:Math.max(20,dist*0.14)};
-    if(frame%5===0) spawnBolt(h0.x,h0.y,h1.x,h1.y);
-    if(frame%2===0) spawnP(orbData.x,orbData.y,0,2*intensity);
-    if(frame%3===0) spawnP(orbData.x,orbData.y,4,2*intensity);
-  } else {
-    orbData=null;
-  }
-
-  if(handResults.length>0&&handResults[0]){
-    glabelEl.textContent=GLABEL[handResults[0].gesture||'OPEN']||'';
-    glabelEl.style.opacity='1';
-  } else {
-    glabelEl.style.opacity='0';
-  }
-
-  updateParticles();
-  drawTrails(fxCtx);
-  drawBolts(fxCtx);
-  drawOrb(fxCtx,false);
-  drawParticles(fxCtx,false);
-
-  drawOrb(blmCtx,true);
-  drawParticles(blmCtx,true);
+  return {x, y};
 }
 
-// Demo landmark üretim
-function makeDemoLms(cx,cy){
-  return Array.from({length:21},(_,i)=>({
-    x:1-(cx+(Math.sin(i*0.85)*28))/W,
-    y:(cy+(Math.cos(i*0.72)*18))/H,
-    z:0
+// ════════════════════════════════════════════════════
+// DEMO MOD
+// ════════════════════════════════════════════════════
+let demoMode = false;
+let demoTime = 0;
+
+function makeDemoHand(cx, cy) {
+  return Array.from({length: 21}, (_, i) => ({
+    x: 1 - (cx + Math.sin(i * 0.9) * 70) / canvas.width,
+    y: (cy + Math.cos(i * 0.9) * 50) / canvas.height,
+    z: 0
   }));
 }
 
-// ══════════════════════════════════════════════════════════════
-// MEDİAPİPE SETUP
-// ══════════════════════════════════════════════════════════════
-let gestureRecognizer=null;
-let camRunning=false;
-let lastVideoTime=-1;
+function updateDemo() {
+  if (!demoMode) return;
+  demoTime += 0.016;
+  handLandmarks = [
+    makeDemoHand(canvas.width * 0.25 + Math.sin(demoTime) * 100, 
+                 canvas.height * 0.45 + Math.cos(demoTime * 0.7) * 80),
+    makeDemoHand(canvas.width * 0.75 + Math.sin(demoTime + Math.PI) * 100, 
+                 canvas.height * 0.55 + Math.cos(demoTime * 0.7 + Math.PI) * 80)
+  ];
+}
 
-async function initMP(){
-  try{
-    loadMsg.textContent='MEDİAPİPE YÜKLENİYOR...';
-    const vision=await FilesetResolver.forVisionTasks(
-      'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm'
-    );
-    gestureRecognizer=await GestureRecognizer.createFromOptions(vision,{
-      baseOptions:{
-        modelAssetPath:'https://storage.googleapis.com/mediapipe-models/gesture_recognizer/gesture_recognizer/float16/1/gesture_recognizer.task',
-        delegate:'GPU'
-      },
-      runningMode:'VIDEO',
-      numHands:2
+// ════════════════════════════════════════════════════
+// KAMERA
+// ════════════════════════════════════════════════════
+async function startCamera() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: {facingMode: 'user', width: {ideal: 1280}, height: {ideal: 720}}
     });
-    statusEl.textContent='MEDİAPİPE HAZIR — KAMERA AÇ VEYA DEMO KULLAN';
-    loadMsg.textContent='HAZIR!';
-  } catch(e){
-    statusEl.textContent='MODEL YÜKLENEMEDİ — DEMO MOD KULLAN';
-    loadMsg.textContent='DEMO MOD KULLAN';
+    video.srcObject = stream;
+    video.style.display = 'block';
+    statusEl.textContent = '✓ Camera active';
+    camBtn.textContent = '✕ KAPAT';
+    camBtn.classList.add('active');
+    cameraActive = true;
+    demoMode = false;
+    demoBtn.classList.remove('active');
+    tutorialEl.style.opacity = '0.8';
+    
+    if (hands) {
+      const camera = new Camera(video, {
+        onFrame: async () => {
+          if (cameraActive) await hands.send({image: video});
+        },
+        width: 1280,
+        height: 720
+      });
+      camera.start();
+    }
+  } catch (e) {
+    statusEl.textContent = '✗ Camera error: ' + e.message;
   }
 }
 
-function predictWebcam(){
-  if(!camRunning) return;
-  if(!gestureRecognizer){requestAnimationFrame(predictWebcam);return;}
-
-  if(video.currentTime===lastVideoTime){requestAnimationFrame(predictWebcam);return;}
-  lastVideoTime=video.currentTime;
-
-  const now=performance.now();
-  let results;
-  try{
-    results=gestureRecognizer.recognizeForVideo(video,now);
-  } catch(e){
-    requestAnimationFrame(predictWebcam);
-    return;
+function stopCamera() {
+  if (video.srcObject) {
+    video.srcObject.getTracks().forEach(t => t.stop());
   }
+  video.style.display = 'none';
+  statusEl.textContent = 'Camera closed';
+  camBtn.textContent = '📷 KAMERA AÇ';
+  camBtn.classList.remove('active');
+  cameraActive = false;
+  handLandmarks = [];
+  tutorialEl.style.opacity = '0.6';
+}
 
-  if(results&&results.landmarks&&results.landmarks.length>0){
-    handResults=results.landmarks.map((lms,i)=>{
-      let g='PARTIAL';
-      if(results.gestures&&results.gestures[i]&&results.gestures[i][0]){
-        const mpG=results.gestures[i][0].categoryName;
-        const MAP={
-          Open_Palm:'OPEN', Closed_Fist:'FIST',
-          Victory:'PEACE', Pointing_Up:'POINT',
-          Thumb_Up:'PINKY', ILoveYou:'ROCK', None:'PARTIAL'
-        };
-        g=MAP[mpG]||detectGesture(lms);
-      } else {
-        g=detectGesture(lms);
-      }
-      return {lms,gesture:g};
-    });
-    const g=handResults[0]?.gesture||'PARTIAL';
-    statusEl.textContent=`📷 KAMERA AKTİF  |  ${GLABEL[g]||''}`;
+camBtn.addEventListener('click', async () => {
+  if (cameraActive) {
+    stopCamera();
   } else {
-    handResults=[];
-    statusEl.textContent='📷 KAMERA AKTİF — El Bekleniyor...';
-  }
-  requestAnimationFrame(predictWebcam);
-}
-
-// ══════════════════════════════════════════════════════════════
-// MOUSE FALLBACK
-// ══════════════════════════════════════════════════════════════
-let mouseGesture='OPEN';
-let mPrev={x:null,y:null};
-
-fxCvs.addEventListener('mousemove',e=>{
-  if(camRunning||demoMode) return;
-  const vel={x:mPrev.x?e.clientX-mPrev.x:0, y:mPrev.y?e.clientY-mPrev.y:0};
-  mPrev={x:e.clientX,y:e.clientY};
-  handResults=[{lms:makeDemoLms(e.clientX,e.clientY),gesture:mouseGesture}];
-  handVel[0]=vel;
-});
-
-fxCvs.addEventListener('mouseleave',()=>{
-  if(!camRunning&&!demoMode) handResults=[];
-});
-
-fxCvs.addEventListener('click',()=>{
-  const gs=['OPEN','PEACE','POINT','FIST','ROCK','PINKY'];
-  mouseGesture=gs[(gs.indexOf(mouseGesture)+1)%gs.length];
-  glabelEl.textContent='Tıklayarak jest değiştirdin: '+mouseGesture;
-  glabelEl.style.opacity='1';
-});
-
-fxCvs.addEventListener('touchmove',e=>{
-  e.preventDefault();
-  if(camRunning||demoMode) return;
-  const t=e.touches[0];
-  handResults=[{lms:makeDemoLms(t.clientX,t.clientY),gesture:mouseGesture}];
-},{passive:false});
-
-fxCvs.addEventListener('touchend',()=>{
-  if(!camRunning&&!demoMode) handResults=[];
-});
-
-// ══════════════════════════════════════════════════════════════
-// UI EVENTS
-// ══════════════════════════════════════════════════════════════
-document.getElementById('cam-btn').addEventListener('click',async()=>{
-  if(camRunning){
-    camRunning=false;
-    if(video.srcObject) video.srcObject.getTracks().forEach(t=>t.stop());
-    video.classList.remove('show');
-    document.getElementById('cam-btn').textContent='📷 KAMERA AÇ';
-    document.getElementById('cam-btn').classList.remove('on');
-    statusEl.textContent='KAMERA KAPATILDI';
-    handResults=[];
-    return;
-  }
-  try{
-    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:1280,height:720}});
-    video.srcObject=stream;
-    await video.play();
-    video.classList.add('show');
-    camRunning=true;
-    document.getElementById('cam-btn').textContent='📷 KAPAT';
-    document.getElementById('cam-btn').classList.add('on');
-    statusEl.textContent='📷 KAMERA AKTİF — El göster!';
-    predictWebcam();
-  }catch(e){
-    statusEl.textContent='Kamera izni reddedildi — Demo kullan';
+    await startCamera();
   }
 });
 
-document.getElementById('demo-btn').addEventListener('click',()=>{
-  demoMode=!demoMode;
-  const b=document.getElementById('demo-btn');
-  b.classList.toggle('on',demoMode);
-  b.textContent=demoMode?'🎭 DEMO KAPAT':'🎭 DEMO';
-  if(demoMode) statusEl.textContent='DEMO AKTİF ✓';
-  else { handResults=[]; statusEl.textContent='DEMO KAPATILDI'; }
+// ════════════════════════════════════════════════════
+// DEMO BUTTON
+// ════════════════════════════════════════════════════
+demoBtn.addEventListener('click', () => {
+  if (cameraActive) stopCamera();
+  demoMode = !demoMode;
+  
+  if (demoMode) {
+    demoBtn.classList.add('active');
+    demoBtn.textContent = '✕ DEMO KAPAT';
+    statusEl.textContent = '🎭 Demo aktif';
+    tutorialEl.style.opacity = '1';
+  } else {
+    demoBtn.classList.remove('active');
+    demoBtn.textContent = '🎭 DEMO';
+    statusEl.textContent = 'Demo kapatıldı';
+    handLandmarks = [];
+    tutorialEl.style.opacity = '0.6';
+  }
 });
 
-document.querySelectorAll('.sp').forEach(b=>{
-  b.addEventListener('click',()=>{
-    document.querySelectorAll('.sp').forEach(x=>x.classList.remove('on'));
-    b.classList.add('on');
-    spell=b.dataset.s;
+// ════════════════════════════════════════════════════
+// RENK SEÇİM
+// ════════════════════════════════════════════════════
+document.querySelectorAll('.color-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentColor = btn.dataset.color;
+    statusEl.textContent = `✦ ${COLORS[currentColor].name} ✦`;
   });
 });
 
-document.getElementById('intensity').addEventListener('input',e=>{
-  intensity=parseInt(e.target.value);
-});
+// ════════════════════════════════════════════════════
+// STATS
+// ════════════════════════════════════════════════════
+let frameCount = 0;
+let lastFpsTime = Date.now();
+let fpsValue = 60;
 
-// ══════════════════════════════════════════════════════════════
-// BAŞLAT
-// ══════════════════════════════════════════════════════════════
-async function boot(){
-  await initMP();
-  loop();
-  setTimeout(()=>{
-    loadEl.style.transition='opacity 0.9s';
-    loadEl.style.opacity='0';
-    setTimeout(()=>loadEl.remove(),900);
-  },1400);
+function updateStats() {
+  frameCount++;
+  const now = Date.now();
+  if (now - lastFpsTime >= 1000) {
+    fpsValue = frameCount;
+    frameCount = 0;
+    lastFpsTime = now;
+  }
+  
+  document.getElementById('particle-count').textContent = particles.length;
+  document.getElementById('hand-count').textContent = handLandmarks.length;
+  document.getElementById('fps-count').textContent = fpsValue;
 }
-boot();
+
+// ════════════════════════════════════════════════════
+// ANA RENDER LOOP
+// ════════════════════════════════════════════════════
+function animate() {
+  requestAnimationFrame(animate);
+  updateStats();
+
+  // Clear canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw particles with lighter blend
+  ctx.globalCompositeOperation = 'lighter';
+  for (let i = particles.length - 1; i >= 0; i--) {
+    particles[i].update();
+    if (particles[i].life <= 0) {
+      particles.splice(i, 1);
+    } else {
+      particles[i].draw(ctx, COLORS[currentColor]);
+    }
+  }
+  ctx.globalCompositeOperation = 'source-over';
+
+  // Process hands
+  updateDemo();
+  
+  handLandmarks.forEach((landmarks, handIdx) => {
+    const gesture = detectGesture(landmarks);
+    const palm = getPalmCenter(landmarks);
+    
+    // Gest efektlerini spawn et
+    if (GESTURE_EFFECTS[gesture]) {
+      const effect = GESTURE_EFFECTS[gesture];
+      spawnParticles(palm.x, palm.y, effect.count, effect.types);
+    }
+
+    // Parmak uçlarından iz
+    [4, 8, 12, 16, 20].forEach(tipIdx => {
+      const tip = getLandmarkScreen(landmarks[tipIdx]);
+      if (frameCount % 4 === 0) {
+        spawnParticles(tip.x, tip.y, 2, ['normal', 'normal']);
+      }
+    });
+
+    // El iskeletini çiz
+    ctx.globalAlpha = 0.3;
+    ctx.strokeStyle = COLORS[currentColor].hex;
+    ctx.lineWidth = 2.5;
+    
+    const connections = [
+      [0,1],[1,2],[2,3],[3,4],
+      [5,6],[6,7],[7,8],
+      [9,10],[10,11],[11,12],
+      [13,14],[14,15],[15,16],
+      [17,18],[18,19],[19,20],
+      [0,5],[5,9],[9,13],[13,17]
+    ];
+
+    connections.forEach(([from, to]) => {
+      const p1 = getLandmarkScreen(landmarks[from]);
+      const p2 = getLandmarkScreen(landmarks[to]);
+      ctx.beginPath();
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+      ctx.stroke();
+    });
+
+    // Parmak uçlarını göster
+    [4, 8, 12, 16, 20].forEach(tipIdx => {
+      const tip = getLandmarkScreen(landmarks[tipIdx]);
+      ctx.globalAlpha = 0.7;
+      ctx.fillStyle = COLORS[currentColor].hex;
+      ctx.beginPath();
+      ctx.arc(tip.x, tip.y, 7, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // Avuç merkezini göster
+    ctx.globalAlpha = 0.8;
+    ctx.fillStyle = COLORS[currentColor].hex;
+    ctx.beginPath();
+    ctx.arc(palm.x, palm.y, 10, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  ctx.globalAlpha = 1;
+}
+
+// ════════════════════════════════════════════════════
+// BAŞLAT
+// ════════════════════════════════════════════════════
+initHands();
+animate();
+tutorialEl.style.opacity = '0.6';
 </script>
 </body>
 </html>
