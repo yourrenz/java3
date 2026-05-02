@@ -3,346 +3,390 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>✦ ARCANE HANDS — Ultimate AR</title>
+<title>✦ ARCANE HANDS — TouchDesigner Edition</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;}
 
-  *{margin:0;padding:0;box-sizing:border-box;}
+#video{
+  position:fixed;inset:0;width:100%;height:100%;
+  object-fit:cover;transform:scaleX(-1);
+  display:none;z-index:1;
+}
+#fx{
+  position:fixed;inset:0;width:100%;height:100%;
+  z-index:2;mix-blend-mode:screen;pointer-events:none;
+}
 
-  :root{
-    --col-arcane:#b060ff;
-    --col-electric:#40d0ff;
-    --col-fire:#ff5f1f;
-    --col-ice:#80f0ff;
-    --col-divine:#ffd060;
-    --ui-bg:rgba(4,0,16,0.75);
-    --ui-border:rgba(176,96,255,0.4);
-    --ui-glow:rgba(176,96,255,0.15);
-  }
+.glass{
+  background:rgba(4,0,20,0.72);
+  border:1px solid rgba(176,96,255,0.35);
+  backdrop-filter:blur(18px);
+  border-radius:14px;
+}
 
-  html,body{width:100%;height:100%;overflow:hidden;background:#000;}
+#guide{position:fixed;top:16px;left:16px;z-index:20;padding:14px 16px;width:230px;}
+#guide-title{
+  font-family:'Orbitron',sans-serif;font-size:.65rem;letter-spacing:.18em;
+  color:#40d0ff;margin-bottom:10px;
+}
+.gi{
+  display:flex;align-items:center;gap:8px;padding:6px 8px;margin-bottom:3px;
+  border-radius:6px;background:rgba(255,255,255,.03);
+  border-left:2px solid rgba(176,96,255,.3);
+  font-size:.7rem;color:rgba(255,255,255,.6);transition:.2s;
+}
+.gi.lit{background:rgba(176,96,255,.14);border-left-color:#b060ff;color:#fff;}
+.gi .ic{min-width:20px;text-align:center;}
+.gi .ef{margin-left:auto;font-family:'Orbitron',sans-serif;font-size:.6rem;color:#b060ff;opacity:.8;}
 
-  /* ── LAYERS ──────────────────────────────────── */
-  #video{
-    position:fixed;inset:0;width:100%;height:100%;
-    object-fit:cover;transform:scaleX(-1);
-    display:none;z-index:1;
-  }
+#panel{position:fixed;top:16px;right:16px;z-index:20;padding:16px 20px;min-width:190px;text-align:right;}
+#brand{
+  font-family:'Orbitron',sans-serif;font-size:.9rem;font-weight:900;letter-spacing:.22em;
+  background:linear-gradient(135deg,#b060ff,#40d0ff);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  margin-bottom:8px;
+}
+#status{font-size:.7rem;color:rgba(255,255,255,.45);margin-bottom:12px;min-height:14px;}
+.stat{display:flex;justify-content:space-between;font-size:.65rem;color:rgba(255,255,255,.35);margin-bottom:4px;}
+.stat span{font-family:'Orbitron',sans-serif;font-size:.68rem;color:#40d0ff;}
+#fps-v{color:#0f0 !important;}
 
-  #three-canvas{
-    position:fixed;inset:0;
-    z-index:2;
-    mix-blend-mode:screen; /* siyah = şeffaf, ışık renkler kamera üstüne yansır */
-    pointer-events:none;
-  }
+#ctrl{
+  position:fixed;bottom:22px;left:50%;transform:translateX(-50%);
+  z-index:20;display:flex;gap:9px;align-items:center;padding:9px 14px;
+}
+.btn{
+  font-family:'Orbitron',sans-serif;font-size:.62rem;letter-spacing:.1em;
+  padding:8px 14px;border-radius:8px;
+  border:1px solid rgba(176,96,255,.4);
+  background:rgba(4,0,20,.9);color:rgba(255,255,255,.65);
+  cursor:pointer;transition:.2s;
+}
+.btn:hover{border-color:#b060ff;color:#fff;box-shadow:0 0 18px rgba(176,96,255,.4);}
+.btn.on{background:#b060ff;color:#000;font-weight:700;border-color:#b060ff;box-shadow:0 0 28px rgba(176,96,255,.6);}
 
-  /* ── UI GLASS PANEL ───────────────────────────── */
-  .glass{
-    background:var(--ui-bg);
-    border:1px solid var(--ui-border);
-    backdrop-filter:blur(16px) saturate(1.5);
-    border-radius:14px;
-    box-shadow:0 0 40px var(--ui-glow),inset 0 0 20px rgba(176,96,255,0.05);
-  }
+.sep{width:1px;height:26px;background:rgba(255,255,255,.1);}
 
-  /* ── TOP LEFT: GESTURE GUIDE ─────────────────── */
-  #guide{
-    position:fixed;top:18px;left:18px;z-index:20;
-    padding:16px 18px;width:240px;
-  }
+.orb{
+  width:34px;height:34px;border-radius:50%;
+  border:2px solid rgba(255,255,255,.2);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:1rem;transition:.2s;background:rgba(0,0,0,.4);
+}
+.orb:hover{transform:scale(1.12);}
+.orb.on{transform:scale(1.2);border-color:#fff;box-shadow:0 0 18px var(--oc);}
 
-  #guide-title{
-    font-family:'Orbitron',sans-serif;
-    font-size:.7rem;letter-spacing:.18em;
-    color:var(--col-electric);
-    margin-bottom:12px;opacity:.9;
-  }
-
-  .gitem{
-    display:flex;align-items:center;gap:10px;
-    padding:6px 8px;margin-bottom:4px;
-    border-radius:6px;
-    background:rgba(255,255,255,0.03);
-    border-left:2px solid transparent;
-    font-family:'Inter',sans-serif;
-    font-size:.75rem;color:rgba(255,255,255,0.65);
-    transition:all .2s;
-  }
-  .gitem.active{
-    background:rgba(176,96,255,.12);
-    border-left-color:var(--col-arcane);
-    color:#fff;
-  }
-  .gitem .icon{font-size:1rem;min-width:22px;text-align:center;}
-  .gitem .label{font-size:.7rem;}
-  .gitem .effect{
-    margin-left:auto;font-size:.6rem;
-    color:var(--col-arcane);opacity:.7;
-    font-family:'Orbitron',sans-serif;letter-spacing:.05em;
-  }
-
-  /* ── TOP RIGHT: STATUS PANEL ─────────────────── */
-  #panel{
-    position:fixed;top:18px;right:18px;z-index:20;
-    padding:18px 22px;min-width:200px;text-align:right;
-  }
-
-  #brand{
-    font-family:'Orbitron',sans-serif;
-    font-size:1rem;font-weight:900;
-    letter-spacing:.25em;
-    background:linear-gradient(135deg,var(--col-arcane),var(--col-electric));
-    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-    margin-bottom:10px;
-  }
-
-  #status-line{
-    font-family:'Inter',sans-serif;
-    font-size:.72rem;color:rgba(255,255,255,0.5);
-    margin-bottom:14px;min-height:16px;
-  }
-
-  .stat{
-    display:flex;justify-content:space-between;
-    font-size:.68rem;margin-bottom:5px;
-    color:rgba(255,255,255,0.4);
-  }
-  .stat span{
-    font-family:'Orbitron',sans-serif;
-    font-size:.7rem;color:var(--col-electric);
-  }
-  #fps-val{color:#0f0 !important;}
-
-  /* ── BOTTOM: CONTROLS ────────────────────────── */
-  #controls{
-    position:fixed;bottom:24px;
-    left:50%;transform:translateX(-50%);
-    z-index:20;
-    display:flex;gap:10px;align-items:center;
-    padding:10px 16px;
-  }
-
-  .btn{
-    font-family:'Orbitron',sans-serif;
-    font-size:.65rem;letter-spacing:.1em;
-    padding:9px 16px;border-radius:8px;
-    border:1px solid var(--ui-border);
-    background:rgba(4,0,16,.9);
-    color:rgba(255,255,255,.7);
-    cursor:pointer;
-    transition:all .25s;
-  }
-  .btn:hover{
-    border-color:var(--col-arcane);
-    color:#fff;
-    box-shadow:0 0 20px rgba(176,96,255,.4);
-    transform:translateY(-1px);
-  }
-  .btn.active{
-    background:var(--col-arcane);
-    color:#000;font-weight:700;
-    border-color:var(--col-arcane);
-    box-shadow:0 0 30px rgba(176,96,255,.6);
-  }
-
-  .sep{width:1px;height:28px;background:rgba(255,255,255,.1);}
-
-  /* Color orbs */
-  .orb{
-    width:36px;height:36px;border-radius:50%;
-    border:2px solid rgba(255,255,255,.2);
-    cursor:pointer;display:flex;align-items:center;justify-content:center;
-    font-size:1.1rem;
-    transition:all .2s;background:rgba(0,0,0,.4);
-  }
-  .orb:hover{transform:scale(1.12);border-color:rgba(255,255,255,.6);}
-  .orb.active{
-    transform:scale(1.2);
-    border-color:#fff;
-    box-shadow:0 0 20px var(--orb-col,#b060ff);
-  }
-
-  /* ── GESTURE FLASH ────────────────────────────── */
-  #gesture-flash{
-    position:fixed;top:50%;left:50%;
-    transform:translate(-50%,-50%);
-    z-index:30;pointer-events:none;
-    font-family:'Orbitron',sans-serif;
-    font-size:1.5rem;letter-spacing:.3em;
-    color:#fff;
-    text-shadow:0 0 40px var(--col-arcane);
-    opacity:0;
-    transition:opacity .15s;
-  }
+#gflash{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+  z-index:30;pointer-events:none;
+  font-family:'Orbitron',sans-serif;font-size:1.4rem;letter-spacing:.3em;
+  color:#fff;text-shadow:0 0 40px #b060ff,0 0 80px #b060ff;
+  opacity:0;transition:opacity .1s;
+}
 </style>
 </head>
 <body>
 
 <video id="video" autoplay playsinline muted></video>
-<canvas id="three-canvas"></canvas>
+<canvas id="fx"></canvas>
 
-<!-- GUIDE -->
 <div id="guide" class="glass">
-  <div id="guide-title">◈ BÜYÜ HAREKET REHBERİ</div>
-  <div class="gitem" id="g-open"><span class="icon">✋</span><span class="label">Açık El</span><span class="effect">AURA</span></div>
-  <div class="gitem" id="g-fist"><span class="icon">✊</span><span class="label">Yumruk</span><span class="effect">ORB</span></div>
-  <div class="gitem" id="g-peace"><span class="icon">✌️</span><span class="label">Barış</span><span class="effect">LIGHTNING</span></div>
-  <div class="gitem" id="g-point"><span class="icon">☝️</span><span class="label">İşaret</span><span class="effect">LASER</span></div>
-  <div class="gitem" id="g-pinky"><span class="icon">🤙</span><span class="label">Pinky</span><span class="effect">WISP</span></div>
-  <div class="gitem" id="g-rock"><span class="icon">🤘</span><span class="label">Rock</span><span class="effect">CHAOS</span></div>
+  <div id="guide-title">◈ BÜYÜ HAREKETLERİ</div>
+  <div class="gi" id="g-open"><span class="ic">✋</span> Açık El <span class="ef">ALEV</span></div>
+  <div class="gi" id="g-fist"><span class="ic">✊</span> Yumruk <span class="ef">ORB</span></div>
+  <div class="gi" id="g-peace"><span class="ic">✌️</span> Barış <span class="ef">ŞİMŞEK</span></div>
+  <div class="gi" id="g-point"><span class="ic">☝️</span> İşaret <span class="ef">LAZER</span></div>
+  <div class="gi" id="g-pinky"><span class="ic">🤙</span> Pinky <span class="ef">HAYALET</span></div>
+  <div class="gi" id="g-rock"><span class="ic">🤘</span> Rock <span class="ef">KAOS</span></div>
 </div>
 
-<!-- PANEL -->
 <div id="panel" class="glass">
-  <div id="brand">✦ ARCANE HANDS ✦</div>
-  <div id="status-line">Sistem başlatılıyor…</div>
-  <div class="stat">Partiküller <span id="p-val">0</span></div>
-  <div class="stat">Eller <span id="h-val">0</span></div>
-  <div class="stat">FPS <span id="fps-val">60</span></div>
+  <div id="brand">✦ ARCANE ✦</div>
+  <div id="status">Başlatılıyor…</div>
+  <div class="stat">FPS <span id="fps-v">60</span></div>
+  <div class="stat">Eller <span id="hand-v">0</span></div>
 </div>
 
-<!-- CONTROLS -->
-<div id="controls" class="glass">
+<div id="ctrl" class="glass">
   <button class="btn" id="cam-btn">📷 KAMERA</button>
   <button class="btn" id="demo-btn">🎭 DEMO</button>
   <div class="sep"></div>
-  <button class="orb active" data-c="arcane"   style="--orb-col:#b060ff">🔮</button>
-  <button class="orb"        data-c="electric" style="--orb-col:#40d0ff">⚡</button>
-  <button class="orb"        data-c="fire"     style="--orb-col:#ff5f1f">🔥</button>
-  <button class="orb"        data-c="ice"      style="--orb-col:#80f0ff">❄️</button>
-  <button class="orb"        data-c="divine"   style="--orb-col:#ffd060">✨</button>
+  <button class="orb on" data-c="arcane"   style="--oc:#b060ff">🔮</button>
+  <button class="orb"    data-c="electric" style="--oc:#40d0ff">⚡</button>
+  <button class="orb"    data-c="fire"     style="--oc:#ff5f1f">🔥</button>
+  <button class="orb"    data-c="ice"      style="--oc:#80f0ff">❄️</button>
+  <button class="orb"    data-c="divine"   style="--oc:#ffd060">✨</button>
+  <button class="orb"    data-c="void"     style="--oc:#ff239b">🌑</button>
 </div>
 
-<div id="gesture-flash"></div>
+<div id="gflash"></div>
 
-<!-- Three.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<!-- MediaPipe -->
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
 
 <script>
 'use strict';
 
-// ══════════════════════════════════════════════════
-// 1. THREE.JS SAHNE KURULUMU
-// ══════════════════════════════════════════════════
-const threeCanvas = document.getElementById('three-canvas');
-const scene = new THREE.Scene();
+// ══════════════════════════════════════════
+// CANVAS
+// ══════════════════════════════════════════
+const canvas = document.getElementById('fx');
+const ctx    = canvas.getContext('2d');
 
-const cam3 = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 2000);
-cam3.position.z = 600;
+function resize(){
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
 
-const renderer = new THREE.WebGLRenderer({
-  canvas: threeCanvas,
-  alpha: true,
-  antialias: false,      // FPS boost
-  powerPreference: 'high-performance'
-});
-renderer.setSize(innerWidth, innerHeight);
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-renderer.setClearColor(0x000000, 0);
-
-window.addEventListener('resize', () => {
-  cam3.aspect = innerWidth / innerHeight;
-  cam3.updateProjectionMatrix();
-  renderer.setSize(innerWidth, innerHeight);
-});
-
-// ══════════════════════════════════════════════════
-// 2. RENK PALETLERİ
-// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════
+// RENK PALETLERİ (void eklendi)
+// ══════════════════════════════════════════
 const PALETTES = {
-  arcane:   {r:.69, g:.37, b:1.0,  hex:0xb060ff, name:'Arcane'},
-  electric: {r:.25, g:.75, b:1.0,  hex:0x40d0ff, name:'Electric'},
-  fire:     {r:1.0, g:.37, b:.07,  hex:0xff5f1f, name:'Fire'},
-  ice:      {r:.50, g:.94, b:1.0,  hex:0x80f0ff, name:'Ice'},
-  divine:   {r:1.0, g:.81, b:.37,  hex:0xffd060, name:'Divine'},
+  arcane:   {core:'#ffffff', mid:'#d080ff', base:'#7020cc', glow:'rgba(176,96,255,',  rgb:[176,96,255]},
+  electric: {core:'#ffffff', mid:'#80e8ff', base:'#1080cc', glow:'rgba(64,192,255,',   rgb:[64,192,255]},
+  fire:     {core:'#ffffff', mid:'#ffaa40', base:'#cc3000', glow:'rgba(255,95,31,',    rgb:[255,95,31]},
+  ice:      {core:'#ffffff', mid:'#a0f0ff', base:'#30a0cc', glow:'rgba(128,240,255,',  rgb:[128,240,255]},
+  divine:   {core:'#ffffff', mid:'#ffe080', base:'#cc9010', glow:'rgba(255,208,96,',   rgb:[255,208,96]},
+  void:     {core:'#ffffff', mid:'#ff80c0', base:'#801040', glow:'rgba(255,35,155,',   rgb:[255,35,155]},
 };
-let currentPalette = 'arcane';
+let pal = 'arcane';
+function P(){ return PALETTES[pal]; }
 
-// ══════════════════════════════════════════════════
-// 3. GPU PARTİKÜL SİSTEMİ — BufferGeometry + Points
-// ══════════════════════════════════════════════════
-const MAX_P = 25000;
-
-// CPU tarafı — typed arrays ile süper hız
-const px   = new Float32Array(MAX_P);
-const py   = new Float32Array(MAX_P);
-const pz   = new Float32Array(MAX_P);
-const pvx  = new Float32Array(MAX_P);
-const pvy  = new Float32Array(MAX_P);
-const pvz  = new Float32Array(MAX_P);
-const plife= new Float32Array(MAX_P);
-const psize= new Float32Array(MAX_P);
-const ptype= new Uint8Array(MAX_P);   // 0:aura 1:orb 2:spark 3:wisp 4:ember 5:snow
-let pIdx = 0;
-
-// GPU geometri
-const geo = new THREE.BufferGeometry();
-const gPos = new Float32Array(MAX_P * 3);
-const gAlpha = new Float32Array(MAX_P);    // custom alpha per particle
-
-geo.setAttribute('position',  new THREE.BufferAttribute(gPos,   3));
-geo.setAttribute('alpha',     new THREE.BufferAttribute(gAlpha, 1));
-geo.setDrawRange(0, MAX_P);
-
-// Glow doku (Canvas 2D ile)
-function makeGlowTex(radius=32){
-  const c = document.createElement('canvas');
-  c.width = c.height = radius*2;
-  const cx2 = c.getContext('2d');
-  const g = cx2.createRadialGradient(radius,radius,0,radius,radius,radius);
-  g.addColorStop(0,   'rgba(255,255,255,1)');
-  g.addColorStop(0.25,'rgba(255,255,255,.8)');
-  g.addColorStop(0.6, 'rgba(255,255,255,.2)');
-  g.addColorStop(1,   'rgba(0,0,0,0)');
-  cx2.fillStyle = g;
-  cx2.fillRect(0,0,radius*2,radius*2);
-  return new THREE.CanvasTexture(c);
+// ══════════════════════════════════════════
+// YARDIMCI — gürültü (curl‑noise türevi)
+// ══════════════════════════════════════════
+function noise2D(x,y,t){
+  return Math.sin(x*0.012+t)*Math.cos(y*0.012-t*0.8)*Math.sin((x+y)*0.007+t*0.5);
 }
 
-// Vertex Shader — her partiküle boyut ve alpha ver
-const vShader = `
-  attribute float alpha;
-  varying float vAlpha;
-  void main(){
-    vAlpha = alpha;
-    vec4 mv = modelViewMatrix * vec4(position,1.0);
-    gl_PointSize = max(2.0, 14.0 * (300.0 / -mv.z));
-    gl_Position = projectionMatrix * mv;
+// ══════════════════════════════════════════
+// ÇİZİM ARAÇLARI (düzeltildi)
+// ══════════════════════════════════════════
+
+function drawGlow(x,y,r,alpha,rgbArray){
+  const [R,G,B]=rgbArray;
+  const g = ctx.createRadialGradient(x,y,0, x,y,r);
+  g.addColorStop(0,   `rgba(${R},${G},${B},${alpha})`);
+  g.addColorStop(0.35,`rgba(${R},${G},${B},${alpha*0.7})`);
+  g.addColorStop(1,   'rgba(0,0,0,0)');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+}
+
+function drawCore(x,y,r,alpha=1){
+  const p=P();
+  const g = ctx.createRadialGradient(x,y,0, x,y,r);
+  g.addColorStop(0,   `rgba(255,255,255,${alpha})`);
+  g.addColorStop(0.3, `rgba(255,255,255,${alpha*0.6})`);
+  g.addColorStop(0.7, p.glow+`${alpha*0.3})`);
+  g.addColorStop(1,   'rgba(0,0,0,0)');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+}
+
+function drawFlame(x,y, height, width, t, alpha=1, colorTop=null){
+  const p=P();
+  const ct = colorTop || p.core;
+  ctx.save();
+  ctx.globalAlpha = alpha;
+
+  for(let layer=0;layer<3;layer++){  // katman azaltıldı
+    const scale = 1 - layer*0.2;
+    const h2 = height * scale;
+    const w2 = width  * scale * (0.6+layer*0.3);
+    const sway = noise2D(x, y+layer*100, t*0.9+layer) * 14;
+    const sway2= noise2D(x, y+layer*200, t*1.3+layer+1) * 8;
+
+    ctx.save();
+    if(layer===0) ctx.filter = 'blur(8px)';
+    else ctx.filter = 'none';
+
+    const grad = ctx.createLinearGradient(x, y, x+sway*0.3, y-h2);
+    if(layer===0){
+      grad.addColorStop(0,   p.glow+'0.9)');
+      grad.addColorStop(0.4, p.glow+'0.5)');
+      grad.addColorStop(1,   'rgba(255,255,255,0)');
+    } else if(layer===1){
+      grad.addColorStop(0,   p.base);
+      grad.addColorStop(0.4, p.mid);
+      grad.addColorStop(0.85, ct);
+      grad.addColorStop(1,   'rgba(255,255,255,0)');
+    } else {
+      grad.addColorStop(0,   p.mid);
+      grad.addColorStop(0.5, 'rgba(255,255,255,0.9)');
+      grad.addColorStop(1,   'rgba(255,255,255,0)');
+    }
+    ctx.fillStyle = grad;
+    ctx.globalCompositeOperation = 'lighter';
+
+    ctx.beginPath();
+    ctx.moveTo(x - w2*0.5, y);
+    ctx.bezierCurveTo(
+      x - w2*0.9 + sway,    y - h2*0.25,
+      x - w2*0.4 + sway2,   y - h2*0.65,
+      x + sway*0.5,          y - h2
+    );
+    ctx.bezierCurveTo(
+      x + w2*0.4 + sway2,   y - h2*0.65,
+      x + w2*0.9 + sway,    y - h2*0.25,
+      x + w2*0.5,            y
+    );
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
   }
-`;
-const fShader = `
-  uniform sampler2D uTex;
-  uniform vec3 uColor;
-  varying float vAlpha;
-  void main(){
-    vec4 t = texture2D(uTex, gl_PointCoord);
-    if(t.a < 0.01) discard;
-    gl_FragColor = vec4(uColor, t.a * vAlpha);
+
+  const tipSway = noise2D(x,y,t*1.2)*16;
+  drawCore(x+tipSway*0.3, y-height*0.85, 5, 0.9);
+  ctx.restore();
+}
+
+function drawOrb(x, y, r, t, pulseAmt=1){
+  const p=P();
+  ctx.save();
+  ctx.globalCompositeOperation='lighter';
+
+  ctx.filter = 'blur(20px)';
+  drawGlow(x,y,r*2.2, 0.6*pulseAmt, p.rgb);
+  ctx.filter = 'none';
+
+  drawGlow(x,y,r*1.4, 0.85*pulseAmt, p.rgb);
+  drawCore(x,y, r*0.55, pulseAmt);
+
+  const ringR = r * (0.85 + Math.sin(t*2)*0.08);
+  ctx.save();
+  ctx.strokeStyle = `rgba(255,255,255,${0.6*pulseAmt})`;
+  ctx.lineWidth = 2;
+  ctx.shadowBlur = 12;
+  ctx.shadowColor = p.mid;
+  ctx.setLineDash([5,8]);
+  ctx.lineDashOffset = -t*40;
+  ctx.beginPath(); ctx.arc(x,y,ringR,0,Math.PI*2); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  for(let i=0;i<8;i++){
+    const a  = t*1.8 + i*Math.PI*0.25;
+    const a2 = -t*1.2+ i*Math.PI*0.25 + 0.4;
+    const pr = r*(0.7 + noise2D(i*100,0,t*0.5)*0.15);
+    const ox = x + Math.cos(a)*pr,  oy = y + Math.sin(a)*pr*0.6;
+    const ox2= x + Math.cos(a2)*pr*0.8, oy2= y + Math.sin(a2)*pr*0.5;
+    const ps = 2+Math.sin(t*3+i)*1.5;
+    drawCore(ox,oy,ps*1.4,0.8*pulseAmt);
+    drawCore(ox2,oy2,ps*0.9,0.5*pulseAmt);
   }
-`;
 
-const mat = new THREE.ShaderMaterial({
-  uniforms:{
-    uTex:  {value: makeGlowTex()},
-    uColor:{value: new THREE.Color(0xb060ff)}
-  },
-  vertexShader:   vShader,
-  fragmentShader: fShader,
-  transparent: true,
-  blending: THREE.AdditiveBlending,
-  depthWrite: false,
-});
+  for(let i=0;i<3;i++){
+    const baseAngle = -Math.PI*0.5 + (i-1)*0.35 + noise2D(i*50,0,t*0.6)*0.2;
+    const tx = x + Math.cos(baseAngle+Math.PI*0.5)*r*0.4;
+    const ty = y - r*0.5;
+    const tendH = r*(1.2 + Math.sin(t*1.5+i)*0.3);
+    drawFlame(tx, ty, tendH, r*0.25, t+i*1.2, 0.7*pulseAmt);
+  }
 
-const particleSystem = new THREE.Points(geo, mat);
-scene.add(particleSystem);
+  ctx.restore();
+}
 
-// ══════════════════════════════════════════════════
-// 4. EL İSKELETİ — Three.js LineSegments
-// ══════════════════════════════════════════════════
-const CONNECTIONS = [
+function lightningBolt(x1,y1,x2,y2,depth,maxDisplace){
+  if(depth===0){
+    ctx.lineTo(x2,y2);
+    return;
+  }
+  const mx=(x1+x2)*0.5, my=(y1+y2)*0.5;
+  const dx=x2-x1, dy=y2-y1;
+  const len=Math.sqrt(dx*dx+dy*dy);
+  const disp=(Math.random()-0.5)*maxDisplace;
+  const nx=-dy/len*disp, ny=dx/len*disp;
+  lightningBolt(x1,y1,mx+nx,my+ny,depth-1,maxDisplace*0.5);
+  lightningBolt(mx+nx,my+ny,x2,y2,depth-1,maxDisplace*0.5);
+}
+
+function drawLightning(x1,y1,x2,y2,alpha=1,width=2){
+  const p=P();
+  ctx.save();
+  ctx.globalCompositeOperation='lighter';
+
+  ctx.filter='blur(6px)';
+  ctx.beginPath(); ctx.moveTo(x1,y1);
+  lightningBolt(x1,y1,x2,y2,4,60);
+  ctx.strokeStyle=p.glow+`${alpha*0.5})`;
+  ctx.lineWidth=width*3;
+  ctx.lineCap='round';
+  ctx.stroke();
+  ctx.filter='none';
+
+  ctx.beginPath(); ctx.moveTo(x1,y1);
+  lightningBolt(x1,y1,x2,y2,4,60);
+  ctx.strokeStyle=`rgba(255,255,255,${alpha*0.9})`;
+  ctx.lineWidth=width;
+  ctx.stroke();
+
+  drawCore(x1,y1,6,alpha*0.8);
+  drawCore(x2,y2,8,alpha*0.9);
+  ctx.restore();
+}
+
+function drawLaser(x,y,angle,length,t,alpha=1){
+  const p=P();
+  ctx.save();
+  ctx.globalCompositeOperation='lighter';
+  const ex=x+Math.cos(angle)*length, ey=y+Math.sin(angle)*length;
+
+  ctx.filter='blur(8px)';
+  const g=ctx.createLinearGradient(x,y,ex,ey);
+  g.addColorStop(0,p.glow+`${alpha})`);
+  g.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.strokeStyle=g;
+  ctx.lineWidth=14;
+  ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(ex,ey); ctx.stroke();
+  ctx.filter='none';
+
+  const g2=ctx.createLinearGradient(x,y,ex,ey);
+  g2.addColorStop(0,`rgba(255,255,255,${alpha})`);
+  g2.addColorStop(0.5,p.mid);
+  g2.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.strokeStyle=g2;
+  ctx.lineWidth=3;
+  ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(ex,ey); ctx.stroke();
+
+  drawCore(x,y,10,alpha);
+  ctx.restore();
+}
+
+function drawWisp(x,y,t,alpha=1){
+  const p=P();
+  ctx.save();
+  ctx.globalCompositeOperation='lighter';
+  const waveX = noise2D(x,y,t*0.8)*25;
+  const waveY = noise2D(x+100,y,t*0.6)*15;
+
+  ctx.filter='blur(10px)';
+  drawGlow(x+waveX,y+waveY,45,0.5*alpha,p.rgb);
+  ctx.filter='none';
+
+  drawFlame(x+waveX,y+waveY,70,18,t,alpha*0.8);
+  drawCore(x+waveX,y+waveY+30,8,alpha*0.9);
+
+  for(let i=0;i<4;i++){
+    const wa=t*2+i*Math.PI*0.5;
+    const wr=25+Math.sin(t*3+i)*10;
+    drawCore(
+      x+waveX+Math.cos(wa)*wr*0.8,
+      y+waveY+Math.sin(wa)*wr*0.5,
+      3+Math.sin(t*4+i)*1.5, 0.5*alpha
+    );
+  }
+  ctx.restore();
+}
+
+// ══════════════════════════════════════════
+// EL İSKELETİ
+// ══════════════════════════════════════════
+const CONN=[
   [0,1],[1,2],[2,3],[3,4],
   [5,6],[6,7],[7,8],
   [9,10],[10,11],[11,12],
@@ -351,149 +395,37 @@ const CONNECTIONS = [
   [0,5],[5,9],[9,13],[13,17],[0,17]
 ];
 
-function makeHandMesh(){
-  const linGeo = new THREE.BufferGeometry();
-  linGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(CONNECTIONS.length*2*3), 3));
-  const linMat = new THREE.LineBasicMaterial({
-    color:0xb060ff, transparent:true, opacity:.55,
-    blending:THREE.AdditiveBlending, depthWrite:false
+function scr(lm){ return { x:(1-lm.x)*canvas.width, y:lm.y*canvas.height }; }
+function palmCenter(lms){
+  let x=0,y=0;
+  [0,5,9,13,17].forEach(i=>{ const s=scr(lms[i]); x+=s.x; y+=s.y; });
+  return {x:x/5,y:y/5};
+}
+
+function drawSkeleton(lms, alpha=0.45){
+  const p=P();
+  ctx.save();
+  ctx.globalCompositeOperation='lighter';
+  ctx.globalAlpha=alpha;
+  ctx.strokeStyle=p.mid;
+  ctx.lineWidth=2;
+  ctx.lineCap='round';
+  ctx.shadowBlur=8;
+  ctx.shadowColor=p.mid;
+  CONN.forEach(([a,b])=>{
+    const pa=scr(lms[a]), pb=scr(lms[b]);
+    ctx.beginPath(); ctx.moveTo(pa.x,pa.y); ctx.lineTo(pb.x,pb.y); ctx.stroke();
   });
-  const lines = new THREE.LineSegments(linGeo, linMat);
-
-  const ptGeo = new THREE.BufferGeometry();
-  ptGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(21*3), 3));
-  const ptMat = new THREE.PointsMaterial({
-    color:0xffffff, size:8, map:makeGlowTex(16),
-    transparent:true, opacity:.9,
-    blending:THREE.AdditiveBlending, depthWrite:false
+  [0,4,8,12,16,20].forEach(i=>{
+    const sp=scr(lms[i]);
+    drawCore(sp.x,sp.y,4,alpha*1.5);
   });
-  const pts = new THREE.Points(ptGeo, ptMat);
-
-  scene.add(lines, pts);
-  lines.visible = pts.visible = false;
-  return {lines, pts};
+  ctx.restore();
 }
 
-const handMeshes = [makeHandMesh(), makeHandMesh()];
-
-// ══════════════════════════════════════════════════
-// 5. YARDIMCI: Koordinat dönüşümü
-// ══════════════════════════════════════════════════
-function lm2world(lm){
-  const vFOV = THREE.MathUtils.degToRad(cam3.fov);
-  const H = 2 * Math.tan(vFOV/2) * cam3.position.z;
-  const W = H * cam3.aspect;
-  return {
-    x: (0.5 - lm.x) * W,
-    y: (0.5 - lm.y) * H,
-    z: lm.z * -300
-  };
-}
-
-// ══════════════════════════════════════════════════
-// 6. PARTİKÜL FİZİK SİSTEMİ
-// ══════════════════════════════════════════════════
-
-// Curl noise (hızlı)
-function curlAngle(x, y, t){
-  return Math.sin(x*.005+t)*Math.cos(y*.005+t*.7)*2.5
-       + Math.sin((x+y)*.004-t*.3)*1.2;
-}
-
-function spawn(wx, wy, wz, count, type){
-  for(let n=0;n<count;n++){
-    const i = pIdx;
-    px[i]=wx+(Math.random()-.5)*8;
-    py[i]=wy+(Math.random()-.5)*8;
-    pz[i]=wz+(Math.random()-.5)*20;
-    ptype[i]=type;
-
-    let spd, ang;
-    switch(type){
-      case 0: // aura — yavaş, dağılan
-        spd=Math.random()*2.5+.5;
-        ang=Math.random()*Math.PI*2;
-        pvx[i]=Math.cos(ang)*spd; pvy[i]=Math.sin(ang)*spd; pvz[i]=(Math.random()-.5)*2;
-        plife[i]=1; psize[i]=Math.random()*.8+.4;
-        break;
-      case 1: // orb — merkezden dışa
-        spd=Math.random()*4+2;
-        ang=Math.random()*Math.PI*2;
-        pvx[i]=Math.cos(ang)*spd; pvy[i]=Math.sin(ang)*spd; pvz[i]=(Math.random()-.5)*spd*.5;
-        plife[i]=1; psize[i]=Math.random()*.5+.3;
-        break;
-      case 2: // spark — hızlı, çakıl
-        spd=Math.random()*12+6;
-        ang=Math.random()*Math.PI*2;
-        pvx[i]=Math.cos(ang)*spd; pvy[i]=Math.sin(ang)*spd; pvz[i]=(Math.random()-.5)*spd;
-        plife[i]=1; psize[i]=Math.random()*.3+.15;
-        break;
-      case 3: // wisp — yüzen
-        pvx[i]=(Math.random()-.5)*1.5; pvy[i]=Math.random()*1+.5; pvz[i]=(Math.random()-.5)*1;
-        plife[i]=1; psize[i]=Math.random()*.6+.3;
-        break;
-      case 4: // ember — yukarı
-        pvx[i]=(Math.random()-.5)*4; pvy[i]=-(Math.random()*5+3); pvz[i]=(Math.random()-.5)*2;
-        plife[i]=1; psize[i]=Math.random()*.4+.2;
-        break;
-      case 5: // snow — aşağı
-        pvx[i]=(Math.random()-.5)*.8; pvy[i]=Math.random()*1.5+.5; pvz[i]=(Math.random()-.5)*.5;
-        plife[i]=1; psize[i]=Math.random()*.5+.25;
-        break;
-    }
-    pIdx=(pIdx+1)%MAX_P;
-  }
-}
-
-let simTime=0;
-function simulate(){
-  simTime+=.016;
-  const col = PALETTES[currentPalette];
-  let alive=0;
-
-  for(let i=0;i<MAX_P;i++){
-    if(plife[i]<=0){
-      gPos[i*3]= 99999; gPos[i*3+1]=99999; gPos[i*3+2]=99999;
-      gAlpha[i]=0;
-      continue;
-    }
-
-    // Curl noise kuvveti
-    const ca = curlAngle(px[i],py[i],simTime);
-    let fx=0,fy=0;
-    const t=ptype[i];
-    const f = t===2?.04 : t===3?.18 : .08;
-    fx=Math.cos(ca)*f; fy=Math.sin(ca)*f;
-    pvx[i]+=fx; pvy[i]+=fy;
-
-    // Tip fiziği
-    if(t===4){ pvy[i]-=.12; }       // ember yukarı
-    else if(t===5){ pvy[i]+=.06; }  // snow aşağı
-    else if(t===2){ pvy[i]+=.05; }  // spark yerçekimi
-    else if(t===0){ pvy[i]-=.01; }  // aura hafif yukarı
-
-    pvx[i]*=.97; pvy[i]*=.97; pvz[i]*=.97;
-    px[i]+=pvx[i]; py[i]+=pvy[i]; pz[i]+=pvz[i];
-
-    // Yaşam azalması
-    const decay = t===2?.022 : t===4?.018 : .010;
-    plife[i]-=decay;
-
-    gPos[i*3]=px[i]; gPos[i*3+1]=py[i]; gPos[i*3+2]=pz[i];
-    gAlpha[i]=Math.max(0, plife[i]);
-    if(plife[i]>0) alive++;
-  }
-
-  geo.attributes.position.needsUpdate=true;
-  geo.attributes.alpha.needsUpdate=true;
-  mat.uniforms.uColor.value.setRGB(col.r,col.g,col.b);
-
-  return alive;
-}
-
-// ══════════════════════════════════════════════════
-// 7. JEST ALGILAMA
-// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════
+// JEST ALGILAMA
+// ══════════════════════════════════════════
 function detectGesture(lms){
   const tips=[4,8,12,16,20].map(i=>lms[i]);
   const pips=[3,6,10,14,18].map(i=>lms[i]);
@@ -509,73 +441,127 @@ function detectGesture(lms){
   return 'PARTIAL';
 }
 
-const GFXMAP = {
-  OPEN:  {types:[0,3],     count:8,  gi:'g-open'},
-  FIST:  {types:[1,4],     count:10, gi:'g-fist'},
-  PEACE: {types:[2],       count:12, gi:'g-peace'},
-  POINT: {types:[2],       count:14, gi:'g-point'},
-  PINKY: {types:[3,5],     count:6,  gi:'g-pinky'},
-  ROCK:  {types:[1,2,4],   count:16, gi:'g-rock'},
-  PARTIAL:{types:[0],      count:2,  gi:null}
-};
+// ══════════════════════════════════════════
+// EFEKT RENDERER
+// ══════════════════════════════════════════
+const GUIDE_IDS = {OPEN:'g-open',FIST:'g-fist',PEACE:'g-peace',POINT:'g-point',PINKY:'g-pinky',ROCK:'g-rock'};
+const GESTURE_NAMES = {OPEN:'ALEV',FIST:'ORB',PEACE:'ŞİMŞEK',POINT:'LAZER',PINKY:'WİSP',ROCK:'KAOS!'};
 
-// ══════════════════════════════════════════════════
-// 8. EL İSKELETİ GÜNCELLEME
-// ══════════════════════════════════════════════════
-function updateHandMesh(mesh, lms){
-  const {lines,pts} = mesh;
-  lines.visible=pts.visible=true;
+const orbCharge = {};
 
-  const lp  = lines.geometry.attributes.position.array;
-  const pp  = pts.geometry.attributes.position.array;
-  let li=0,pi=0;
+function renderHandEffects(lms, handIdx, t){
+  const gesture = detectGesture(lms);
+  const palm    = palmCenter(lms);
+  const tips    = [4,8,12,16,20].map(i=>scr(lms[i]));
+  const wrist   = scr(lms[0]);
 
-  for(const [a,b] of CONNECTIONS){
-    const wa=lm2world(lms[a]), wb=lm2world(lms[b]);
-    lp[li++]=wa.x;lp[li++]=wa.y;lp[li++]=wa.z;
-    lp[li++]=wb.x;lp[li++]=wb.y;lp[li++]=wb.z;
+  drawSkeleton(lms, gesture==='PARTIAL'?0.25:0.45);
+
+  const key=`${handIdx}`;
+  if(gesture==='FIST'){
+    orbCharge[key]=(orbCharge[key]||0)+0.025;
+    if(orbCharge[key]>1) orbCharge[key]=1;
+  } else {
+    orbCharge[key]=Math.max(0,(orbCharge[key]||0)-0.04);
   }
-  for(let k=0;k<21;k++){
-    const w=lm2world(lms[k]);
-    pp[pi++]=w.x;pp[pi++]=w.y;pp[pi++]=w.z;
-  }
-  lines.geometry.attributes.position.needsUpdate=true;
-  pts.geometry.attributes.position.needsUpdate=true;
+  const charge=orbCharge[key]||0;
 
-  const col = PALETTES[currentPalette];
-  lines.material.color.setHex(col.hex);
-  pts.material.color.setHex(col.hex);
+  switch(gesture){
+    case 'OPEN':
+      tips.forEach((tip,i)=>{
+        const h=80+Math.sin(t*2+i)*15;
+        drawFlame(tip.x, tip.y, h, 14, t+i*0.7, 0.85);
+      });
+      ctx.save();
+      ctx.globalCompositeOperation='lighter';
+      ctx.filter='blur(14px)';
+      drawGlow(palm.x,palm.y,70,0.35,P().rgb);
+      ctx.filter='none';
+      ctx.restore();
+      break;
+
+    case 'FIST':{
+      const r=35+charge*30;
+      const pulse=1+Math.sin(t*4)*0.08;
+      drawOrb(palm.x,palm.y,r*pulse,t,Math.max(0.4,charge));
+      break;
+    }
+
+    case 'PEACE':{
+      const i8=scr(lms[8]), i12=scr(lms[12]);
+      const angle8=Math.atan2(i8.y-palm.y, i8.x-palm.x);
+      const angle12=Math.atan2(i12.y-palm.y, i12.x-palm.x);
+      drawLightning(i8.x,i8.y,
+        i8.x+Math.cos(angle8)*140, i8.y+Math.sin(angle8)*140, 0.9);
+      drawLightning(i12.x,i12.y,
+        i12.x+Math.cos(angle12)*140, i12.y+Math.sin(angle12)*140, 0.9);
+      if(Math.random()>0.4)
+        drawLightning(i8.x,i8.y,i12.x,i12.y,0.6,1.5);
+      drawCore(i8.x,i8.y,12,0.9);
+      drawCore(i12.x,i12.y,12,0.9);
+      break;
+    }
+
+    case 'POINT':{
+      const tip=scr(lms[8]);
+      const angle=Math.atan2(tip.y-scr(lms[6]).y, tip.x-scr(lms[6]).x);
+      drawLaser(tip.x,tip.y,angle,350,t,0.95);
+      drawCore(tip.x,tip.y,14,0.9);
+      break;
+    }
+
+    case 'PINKY':{
+      const tip=scr(lms[20]);
+      drawWisp(tip.x,tip.y,t,0.9);
+      break;
+    }
+
+    case 'ROCK':{
+      drawOrb(palm.x,palm.y,40,t,0.8);
+      const i8=scr(lms[8]), i20=scr(lms[20]);
+      drawLightning(i8.x,i8.y,
+        i8.x+(i8.x-palm.x)*2.5, i8.y+(i8.y-palm.y)*2.5, 0.9);
+      drawLightning(i20.x,i20.y,
+        i20.x+(i20.x-palm.x)*2.5, i20.y+(i20.y-palm.y)*2.5, 0.9);
+      if(Math.random()>0.5)
+        drawLightning(i8.x,i8.y,i20.x,i20.y,0.5,1.2);
+      break;
+    }
+
+    default:
+      tips.forEach((tip,i)=>{
+        ctx.save();
+        ctx.globalCompositeOperation='lighter';
+        drawGlow(tip.x,tip.y,10,0.15+Math.sin(t*3+i)*0.05,P().rgb);
+        ctx.restore();
+      });
+  }
 }
 
-function hideHandMeshes(){
-  handMeshes.forEach(m=>{m.lines.visible=false;m.pts.visible=false;});
-}
-
-// ══════════════════════════════════════════════════
-// 9. MEDİAPIPE
-// ══════════════════════════════════════════════════
-const video = document.getElementById('video');
+// ══════════════════════════════════════════
+// MEDİAPİPE
+// ══════════════════════════════════════════
+const video   = document.getElementById('video');
 let hands=null, activeLms=[], cameraActive=false;
 
 async function initHands(){
   try{
     hands=new Hands({locateFile:f=>`https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`});
-    hands.setOptions({maxNumHands:2,modelComplexity:0,minDetectionConfidence:.55,minTrackingConfidence:.5});
-    hands.onResults(r=>{ activeLms = r.multiHandLandmarks||[]; });
+    hands.setOptions({maxNumHands:2,modelComplexity:0,minDetectionConfidence:0.55,minTrackingConfidence:0.5});
+    hands.onResults(r=>{ activeLms=r.multiHandLandmarks||[]; });
     setStatus('✓ Hazır — Kamera aç veya Demo');
-  }catch(e){ setStatus('⚠ MediaPipe yüklenemedi, Demo kullan'); }
+  }catch(e){ setStatus('⚠ Demo modunu kullan'); }
 }
 
 async function startCamera(){
   try{
     const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:640},height:{ideal:480}}});
     video.srcObject=s; video.style.display='block';
-    setStatus('🎥 Kamera aktif');
     document.getElementById('cam-btn').textContent='✕ Kapat';
-    document.getElementById('cam-btn').classList.add('active');
+    document.getElementById('cam-btn').classList.add('on');
     cameraActive=true; demoMode=false;
-    document.getElementById('demo-btn').classList.remove('active');
-
+    document.getElementById('demo-btn').classList.remove('on');
+    setStatus('🎥 Kamera aktif');
     if(hands){
       const c=new Camera(video,{onFrame:async()=>{ if(cameraActive) await hands.send({image:video}); },width:640,height:480});
       c.start();
@@ -587,127 +573,138 @@ function stopCamera(){
   if(video.srcObject) video.srcObject.getTracks().forEach(t=>t.stop());
   video.style.display='none'; cameraActive=false; activeLms=[];
   document.getElementById('cam-btn').textContent='📷 Kamera';
-  document.getElementById('cam-btn').classList.remove('active');
+  document.getElementById('cam-btn').classList.remove('on');
   setStatus('Kamera kapatıldı');
 }
 
-// ══════════════════════════════════════════════════
-// 10. DEMO MODU
-// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════
+// DEMO MODU (düzeltildi)
+// ══════════════════════════════════════════
 let demoMode=false, demoT=0;
 
-function makeDemoLms(cx,cy){
-  return Array.from({length:21},(_,i)=>({
-    x:1-(cx+Math.sin(i*.9+demoT)*80)/innerWidth,
-    y:(cy+Math.cos(i*.9+demoT*.7)*60)/innerHeight,
-    z:0
-  }));
+function makeDemoHand(cx,cy, gestureType='OPEN'){
+  const lms=[];
+  lms[0]={x:1-cx/canvas.width, y:(cy+60)/canvas.height, z:0};
+  lms[1]={x:1-(cx-30)/canvas.width, y:(cy+40)/canvas.height, z:0};
+  lms[2]={x:1-(cx-55)/canvas.width, y:(cy+20)/canvas.height, z:0};
+  lms[3]={x:1-(cx-70)/canvas.width, y:(cy)/canvas.height, z:0};
+  lms[4]={x:1-(cx-80)/canvas.width, y:(cy-15)/canvas.height, z:0};
+
+  let fingers;
+  if(gestureType==='FIST'){
+    fingers=[
+      [{x:cx-15,y:cy+10},{x:cx-20,y:cy+25},{x:cx-18,y:cy+38},{x:cx-14,y:cy+42}],
+      [{x:cx,y:cy+5},{x:cx+2,y:cy+20},{x:cx+2,y:cy+33},{x:cx+2,y:cy+38}],
+      [{x:cx+15,y:cy+8},{x:cx+20,y:cy+22},{x:cx+18,y:cy+35},{x:cx+16,y:cy+40}],
+      [{x:cx+28,y:cy+12},{x:cx+32,y:cy+26},{x:cx+30,y:cy+38},{x:cx+27,y:cy+43}],
+    ];
+  } else {
+    fingers=[
+      [{x:cx-15,y:cy},{x:cx-18,y:cy-25},{x:cx-17,y:cy-50},{x:cx-15,y:cy-70}],
+      [{x:cx,y:cy-5},{x:cx,y:cy-32},{x:cx+1,y:cy-58},{x:cx+2,y:cy-80}],
+      [{x:cx+15,y:cy-2},{x:cx+18,y:cy-28},{x:cx+18,y:cy-54},{x:cx+17,y:cy-74}],
+      [{x:cx+28,y:cy+4},{x:cx+30,y:cy-18},{x:cx+29,y:cy-40},{x:cx+27,y:cy-58}],
+    ];
+  }
+
+  fingers.forEach((f,fi)=>{
+    const base=5+fi*4;
+    lms[base]  ={x:1-f[0].x/canvas.width, y:f[0].y/canvas.height, z:0};
+    lms[base+1]={x:1-f[1].x/canvas.width, y:f[1].y/canvas.height, z:0};
+    lms[base+2]={x:1-f[2].x/canvas.width, y:f[2].y/canvas.height, z:0};
+    lms[base+3]={x:1-f[3].x/canvas.width, y:f[3].y/canvas.height, z:0};
+  });
+  return lms;
 }
 
-function tickDemo(){
-  if(!demoMode) return;
-  demoT+=.018;
-  activeLms=[
-    makeDemoLms(innerWidth*.28+Math.sin(demoT)*130, innerHeight*.42+Math.cos(demoT*.65)*100),
-    makeDemoLms(innerWidth*.72+Math.sin(demoT+Math.PI)*130, innerHeight*.58+Math.cos(demoT*.65+Math.PI)*100)
-  ];
-}
-
-// ══════════════════════════════════════════════════
-// 11. GESTURE FLASH UI
-// ══════════════════════════════════════════════════
-const GESTURE_LABELS = {OPEN:'AURA',FIST:'ORB',PEACE:'LIGHTNING',POINT:'LASER',PINKY:'WISP',ROCK:'CHAOS!'};
-let lastGesture='', flashTimer=0;
-const flashEl = document.getElementById('gesture-flash');
-let prevGuideActive=null;
+// ══════════════════════════════════════════
+// GESTURE FLASH UI
+// ══════════════════════════════════════════
+let lastG='', flashTmr=0, guideActive=null;
+const flashEl=document.getElementById('gflash');
 
 function flashGesture(g){
-  if(g===lastGesture||g==='PARTIAL') return;
-  lastGesture=g; clearTimeout(flashTimer);
-  flashEl.textContent = GESTURE_LABELS[g]||'';
+  if(g===lastG||g==='PARTIAL') return;
+  lastG=g;
+  clearTimeout(flashTmr);
+  flashEl.textContent=GESTURE_NAMES[g]||'';
   flashEl.style.opacity='1';
-  flashTimer=setTimeout(()=>flashEl.style.opacity='0',600);
+  flashTmr=setTimeout(()=>flashEl.style.opacity='0',700);
 
-  if(prevGuideActive) document.getElementById(prevGuideActive)?.classList.remove('active');
-  const gfx=GFXMAP[g];
-  if(gfx?.gi){ document.getElementById(gfx.gi)?.classList.add('active'); prevGuideActive=gfx.gi; }
+  if(guideActive) document.getElementById(guideActive)?.classList.remove('lit');
+  const gid=GUIDE_IDS[g];
+  if(gid){ document.getElementById(gid)?.classList.add('lit'); guideActive=gid; }
 }
 
-// ══════════════════════════════════════════════════
-// 12. STATS
-// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════
+// STATS
+// ══════════════════════════════════════════
 let fc=0,lastFt=Date.now(),fpsV=60;
-function tickStats(alive){
+function tickStats(){
   fc++; const now=Date.now();
   if(now-lastFt>=1000){ fpsV=fc; fc=0; lastFt=now; }
-  document.getElementById('p-val').textContent=alive.toLocaleString();
-  document.getElementById('h-val').textContent=activeLms.length;
-  const fe=document.getElementById('fps-val');
+  const fe=document.getElementById('fps-v');
   fe.textContent=fpsV;
   fe.style.color=fpsV>40?'#0f0':fpsV>20?'#ff0':'#f00';
+  document.getElementById('hand-v').textContent=activeLms.length;
 }
 
-function setStatus(t){ document.getElementById('status-line').textContent=t; }
+function setStatus(t){ document.getElementById('status').textContent=t; }
 
-// ══════════════════════════════════════════════════
-// 13. ANA DÖNGÜ
-// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════
+// ANA DÖNGÜ (ambient dust eklendi)
+// ══════════════════════════════════════════
+let T=0;
 function loop(){
   requestAnimationFrame(loop);
+  T+=0.016;
+  tickStats();
 
-  tickDemo();
+  if(demoMode){
+    demoT+=0.022;
+    const phase = Math.floor(demoT*0.4)%3;
+    let g='OPEN';
+    if(phase===1) g='FIST';
+    else if(phase===2) g='ROCK';
+    activeLms=[
+      makeDemoHand(canvas.width*0.3 +Math.sin(demoT)*80, canvas.height*0.45+Math.cos(demoT*0.7)*60, g),
+      makeDemoHand(canvas.width*0.7 +Math.sin(demoT+Math.PI)*80, canvas.height*0.52+Math.cos(demoT*0.7+Math.PI)*60, g),
+    ];
+  }
 
-  // El işleme
-  hideHandMeshes();
-  activeLms.forEach((lms,idx)=>{
-    if(idx>=2) return;
+  // Feedback trail
+  ctx.globalCompositeOperation='source-over';
+  ctx.globalAlpha=1;
+  ctx.fillStyle='rgba(0,0,0,0.18)';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  // Efektler
+  activeLms.forEach((lms,i)=>{
     if(lms.length<21) return;
-
-    updateHandMesh(handMeshes[idx], lms);
-    const gesture = detectGesture(lms);
-    flashGesture(gesture);
-    const gfx = GFXMAP[gesture]||GFXMAP.PARTIAL;
-
-    // Avuç merkezi
-    let px2=0,py2=0,pz2=0;
-    [0,5,9,13,17].forEach(k=>{
-      const w=lm2world(lms[k]);
-      px2+=w.x; py2+=w.y; pz2+=w.z;
-    });
-    px2/=5;py2/=5;pz2/=5;
-
-    // Her jestte tip bazlı spawn
-    if(gesture==='PEACE'){
-      const t1=lm2world(lms[8]), t2=lm2world(lms[12]);
-      spawn(t1.x,t1.y,t1.z,6,2);
-      spawn(t2.x,t2.y,t2.z,6,2);
-    } else if(gesture==='POINT'){
-      const t=lm2world(lms[8]);
-      spawn(t.x,t.y,t.z,8,2);
-    } else if(gesture==='ROCK'){
-      const t1=lm2world(lms[8]), t2=lm2world(lms[20]);
-      spawn(t1.x,t1.y,t1.z,5,2); spawn(t2.x,t2.y,t2.z,5,2);
-      spawn(px2,py2,pz2,6,1);
-    } else {
-      gfx.types.forEach(tp=> spawn(px2,py2,pz2, Math.ceil(gfx.count/gfx.types.length), tp));
-    }
-
-    // Parmak uçlarından sürekli iz
-    [4,8,12,16,20].forEach(ti=>{
-      const w=lm2world(lms[ti]);
-      spawn(w.x,w.y,w.z,1,0);
-    });
+    flashGesture(detectGesture(lms));
+    renderHandEffects(lms,i,T);
   });
 
-  // Fizik + render
-  const alive = simulate();
-  tickStats(alive);
-  renderer.render(scene, cam3);
+  // Ambient dust (TouchDesigner background particles)
+  if(activeLms.length===0 && !demoMode){
+    ctx.save();
+    ctx.globalCompositeOperation='lighter';
+    for(let i=0;i<5;i++){
+      const dx=canvas.width*(0.2+0.6*Math.sin(T*0.7+i*1.2));
+      const dy=canvas.height*(0.3+0.4*Math.cos(T*0.5+i*0.9));
+      drawCore(dx,dy,4+Math.sin(T*2+i)*2,0.08);
+    }
+    drawGlow(canvas.width*0.5,canvas.height*0.5,60,0.03,P().rgb);
+    ctx.restore();
+  }
+
+  ctx.globalAlpha=1;
+  ctx.globalCompositeOperation='source-over';
 }
 
-// ══════════════════════════════════════════════════
-// 14. EVENT LISTENERS
-// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════
+// EVENTS
+// ══════════════════════════════════════════
 document.getElementById('cam-btn').addEventListener('click',()=>{
   if(cameraActive) stopCamera(); else startCamera();
 });
@@ -717,26 +714,24 @@ document.getElementById('demo-btn').addEventListener('click',()=>{
   demoMode=!demoMode;
   const btn=document.getElementById('demo-btn');
   if(demoMode){
-    btn.classList.add('active'); btn.textContent='✕ Demo Kapat';
-    setStatus('🎭 Demo aktif');
+    btn.classList.add('on'); btn.textContent='✕ Demo Kapat';
+    setStatus('🎭 Demo aktif — jest otomatik değişiyor');
   } else {
-    btn.classList.remove('active'); btn.textContent='🎭 Demo';
+    btn.classList.remove('on'); btn.textContent='🎭 Demo';
     activeLms=[]; setStatus('Demo durduruldu');
   }
 });
 
 document.querySelectorAll('.orb').forEach(b=>{
   b.addEventListener('click',()=>{
-    document.querySelectorAll('.orb').forEach(x=>x.classList.remove('active'));
-    b.classList.add('active');
-    currentPalette=b.dataset.c;
-    setStatus(`✦ ${PALETTES[currentPalette].name} modu`);
+    document.querySelectorAll('.orb').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    pal=b.dataset.c;
+    setStatus(`✦ ${pal.toUpperCase()} modu aktif`);
   });
 });
 
-// ══════════════════════════════════════════════════
-// 15. BAŞLAT
-// ══════════════════════════════════════════════════
+// BAŞLAT
 initHands();
 loop();
 </script>
