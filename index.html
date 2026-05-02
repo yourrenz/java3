@@ -1,245 +1,744 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arcane Hands - AR Hand Tracking</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            background-color: #050510;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: white;
-        }
-        /* Arka plan kamera görüntüsü */
-        #video-feed {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            object-fit: cover;
-            transform: scaleX(-1); /* Ayna efekti */
-            opacity: 0.15;
-            z-index: 0;
-            pointer-events: none;
-        }
-        /* Three.js 3D Sahnesi */
-        #canvas-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 1;
-        }
-        /* Arayüz */
-        #ui {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 10;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            padding: 15px 20px;
-            border-radius: 12px;
-        }
-        #ui h1 {
-            margin: 0;
-            font-size: 16px;
-            letter-spacing: 2px;
-            color: #b060ff;
-        }
-        #status {
-            margin-top: 5px;
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.6);
-        }
-    </style>
-    <!-- Three.js ve MediaPipe Kütüphaneleri (CDN) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>✦ ARCANE HANDS — Ultimate AR</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400&display=swap');
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+
+  :root{
+    --col-arcane:#b060ff;
+    --col-electric:#40d0ff;
+    --col-fire:#ff5f1f;
+    --col-ice:#80f0ff;
+    --col-divine:#ffd060;
+    --ui-bg:rgba(4,0,16,0.75);
+    --ui-border:rgba(176,96,255,0.4);
+    --ui-glow:rgba(176,96,255,0.15);
+  }
+
+  html,body{width:100%;height:100%;overflow:hidden;background:#000;}
+
+  /* ── LAYERS ──────────────────────────────────── */
+  #video{
+    position:fixed;inset:0;width:100%;height:100%;
+    object-fit:cover;transform:scaleX(-1);
+    display:none;z-index:1;
+  }
+
+  #three-canvas{
+    position:fixed;inset:0;
+    z-index:2;
+    mix-blend-mode:screen; /* siyah = şeffaf, ışık renkler kamera üstüne yansır */
+    pointer-events:none;
+  }
+
+  /* ── UI GLASS PANEL ───────────────────────────── */
+  .glass{
+    background:var(--ui-bg);
+    border:1px solid var(--ui-border);
+    backdrop-filter:blur(16px) saturate(1.5);
+    border-radius:14px;
+    box-shadow:0 0 40px var(--ui-glow),inset 0 0 20px rgba(176,96,255,0.05);
+  }
+
+  /* ── TOP LEFT: GESTURE GUIDE ─────────────────── */
+  #guide{
+    position:fixed;top:18px;left:18px;z-index:20;
+    padding:16px 18px;width:240px;
+  }
+
+  #guide-title{
+    font-family:'Orbitron',sans-serif;
+    font-size:.7rem;letter-spacing:.18em;
+    color:var(--col-electric);
+    margin-bottom:12px;opacity:.9;
+  }
+
+  .gitem{
+    display:flex;align-items:center;gap:10px;
+    padding:6px 8px;margin-bottom:4px;
+    border-radius:6px;
+    background:rgba(255,255,255,0.03);
+    border-left:2px solid transparent;
+    font-family:'Inter',sans-serif;
+    font-size:.75rem;color:rgba(255,255,255,0.65);
+    transition:all .2s;
+  }
+  .gitem.active{
+    background:rgba(176,96,255,.12);
+    border-left-color:var(--col-arcane);
+    color:#fff;
+  }
+  .gitem .icon{font-size:1rem;min-width:22px;text-align:center;}
+  .gitem .label{font-size:.7rem;}
+  .gitem .effect{
+    margin-left:auto;font-size:.6rem;
+    color:var(--col-arcane);opacity:.7;
+    font-family:'Orbitron',sans-serif;letter-spacing:.05em;
+  }
+
+  /* ── TOP RIGHT: STATUS PANEL ─────────────────── */
+  #panel{
+    position:fixed;top:18px;right:18px;z-index:20;
+    padding:18px 22px;min-width:200px;text-align:right;
+  }
+
+  #brand{
+    font-family:'Orbitron',sans-serif;
+    font-size:1rem;font-weight:900;
+    letter-spacing:.25em;
+    background:linear-gradient(135deg,var(--col-arcane),var(--col-electric));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    margin-bottom:10px;
+  }
+
+  #status-line{
+    font-family:'Inter',sans-serif;
+    font-size:.72rem;color:rgba(255,255,255,0.5);
+    margin-bottom:14px;min-height:16px;
+  }
+
+  .stat{
+    display:flex;justify-content:space-between;
+    font-size:.68rem;margin-bottom:5px;
+    color:rgba(255,255,255,0.4);
+  }
+  .stat span{
+    font-family:'Orbitron',sans-serif;
+    font-size:.7rem;color:var(--col-electric);
+  }
+  #fps-val{color:#0f0 !important;}
+
+  /* ── BOTTOM: CONTROLS ────────────────────────── */
+  #controls{
+    position:fixed;bottom:24px;
+    left:50%;transform:translateX(-50%);
+    z-index:20;
+    display:flex;gap:10px;align-items:center;
+    padding:10px 16px;
+  }
+
+  .btn{
+    font-family:'Orbitron',sans-serif;
+    font-size:.65rem;letter-spacing:.1em;
+    padding:9px 16px;border-radius:8px;
+    border:1px solid var(--ui-border);
+    background:rgba(4,0,16,.9);
+    color:rgba(255,255,255,.7);
+    cursor:pointer;
+    transition:all .25s;
+  }
+  .btn:hover{
+    border-color:var(--col-arcane);
+    color:#fff;
+    box-shadow:0 0 20px rgba(176,96,255,.4);
+    transform:translateY(-1px);
+  }
+  .btn.active{
+    background:var(--col-arcane);
+    color:#000;font-weight:700;
+    border-color:var(--col-arcane);
+    box-shadow:0 0 30px rgba(176,96,255,.6);
+  }
+
+  .sep{width:1px;height:28px;background:rgba(255,255,255,.1);}
+
+  /* Color orbs */
+  .orb{
+    width:36px;height:36px;border-radius:50%;
+    border:2px solid rgba(255,255,255,.2);
+    cursor:pointer;display:flex;align-items:center;justify-content:center;
+    font-size:1.1rem;
+    transition:all .2s;background:rgba(0,0,0,.4);
+  }
+  .orb:hover{transform:scale(1.12);border-color:rgba(255,255,255,.6);}
+  .orb.active{
+    transform:scale(1.2);
+    border-color:#fff;
+    box-shadow:0 0 20px var(--orb-col,#b060ff);
+  }
+
+  /* ── GESTURE FLASH ────────────────────────────── */
+  #gesture-flash{
+    position:fixed;top:50%;left:50%;
+    transform:translate(-50%,-50%);
+    z-index:30;pointer-events:none;
+    font-family:'Orbitron',sans-serif;
+    font-size:1.5rem;letter-spacing:.3em;
+    color:#fff;
+    text-shadow:0 0 40px var(--col-arcane);
+    opacity:0;
+    transition:opacity .15s;
+  }
+</style>
 </head>
 <body>
 
-    <video id="video-feed" autoplay playsinline muted></video>
-    <div id="canvas-container"></div>
-    
-    <div id="ui">
-        <h1>ARCANE HANDS</h1>
-        <div id="status">Kamera başlatılıyor, lütfen bekleyin...</div>
-    </div>
+<video id="video" autoplay playsinline muted></video>
+<canvas id="three-canvas"></canvas>
 
-    <script>
-        // --- 1. THREE.JS SAHNE KURULUMU ---
-        const container = document.getElementById('canvas-container');
-        const scene = new THREE.Scene();
-        
-        // Kamera ayarları
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.z = 6;
+<!-- GUIDE -->
+<div id="guide" class="glass">
+  <div id="guide-title">◈ BÜYÜ HAREKET REHBERİ</div>
+  <div class="gitem" id="g-open"><span class="icon">✋</span><span class="label">Açık El</span><span class="effect">AURA</span></div>
+  <div class="gitem" id="g-fist"><span class="icon">✊</span><span class="label">Yumruk</span><span class="effect">ORB</span></div>
+  <div class="gitem" id="g-peace"><span class="icon">✌️</span><span class="label">Barış</span><span class="effect">LIGHTNING</span></div>
+  <div class="gitem" id="g-point"><span class="icon">☝️</span><span class="label">İşaret</span><span class="effect">LASER</span></div>
+  <div class="gitem" id="g-pinky"><span class="icon">🤙</span><span class="label">Pinky</span><span class="effect">WISP</span></div>
+  <div class="gitem" id="g-rock"><span class="icon">🤘</span><span class="label">Rock</span><span class="effect">CHAOS</span></div>
+</div>
 
-        // Render ayarları
-        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
-        container.appendChild(renderer.domElement);
+<!-- PANEL -->
+<div id="panel" class="glass">
+  <div id="brand">✦ ARCANE HANDS ✦</div>
+  <div id="status-line">Sistem başlatılıyor…</div>
+  <div class="stat">Partiküller <span id="p-val">0</span></div>
+  <div class="stat">Eller <span id="h-val">0</span></div>
+  <div class="stat">FPS <span id="fps-val">60</span></div>
+</div>
 
-        // Pencere boyutu değiştiğinde tepki ver
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
+<!-- CONTROLS -->
+<div id="controls" class="glass">
+  <button class="btn" id="cam-btn">📷 KAMERA</button>
+  <button class="btn" id="demo-btn">🎭 DEMO</button>
+  <div class="sep"></div>
+  <button class="orb active" data-c="arcane"   style="--orb-col:#b060ff">🔮</button>
+  <button class="orb"        data-c="electric" style="--orb-col:#40d0ff">⚡</button>
+  <button class="orb"        data-c="fire"     style="--orb-col:#ff5f1f">🔥</button>
+  <button class="orb"        data-c="ice"      style="--orb-col:#80f0ff">❄️</button>
+  <button class="orb"        data-c="divine"   style="--orb-col:#ffd060">✨</button>
+</div>
 
-        // --- 2. EL İSKELETİ (MATERYAL VE GEOMETRİ) ---
-        // Eklemleri bağlayan çizgiler
-        const connections = [
-            [0, 1], [1, 2], [2, 3], [3, 4],
-            [5, 6], [6, 7], [7, 8],
-            [9, 10], [10, 11], [11, 12],
-            [13, 14], [14, 15], [15, 16],
-            [17, 18], [18, 19], [19, 20],
-            [0, 5], [5, 9], [9, 13], [13, 17]
-        ];
+<div id="gesture-flash"></div>
 
-        // 3D Çizgi Materyali (Arcane Mor Rengi)
-        const lineMaterial = new THREE.LineBasicMaterial({ 
-            color: 0xb060ff, 
-            transparent: true, 
-            opacity: 0.6,
-            linewidth: 2
-        });
+<!-- Three.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<!-- MediaPipe -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
 
-        // Parmak uçlarındaki parlayan noktalar
-        const pointMaterial = new THREE.PointsMaterial({
-            color: 0xffffff,
-            size: 0.2,
-            transparent: true,
-            opacity: 0.9,
-            blending: THREE.AdditiveBlending
-        });
+<script>
+'use strict';
 
-        // Sahnede tutulacak ellerin dizisi
-        let handLines = [];
-        let handPoints = [];
+// ══════════════════════════════════════════════════
+// 1. THREE.JS SAHNE KURULUMU
+// ══════════════════════════════════════════════════
+const threeCanvas = document.getElementById('three-canvas');
+const scene = new THREE.Scene();
 
-        // 2 el için boş meshleri sahneye ekleyelim
-        for (let i = 0; i < 2; i++) {
-            const lineGeo = new THREE.BufferGeometry();
-            lineGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(connections.length * 2 * 3), 3));
-            const lines = new THREE.LineSegments(lineGeo, lineMaterial);
-            
-            const pointGeo = new THREE.BufferGeometry();
-            pointGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(21 * 3), 3));
-            const points = new THREE.Points(pointGeo, pointMaterial);
+const cam3 = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 2000);
+cam3.position.z = 600;
 
-            scene.add(lines);
-            scene.add(points);
-            
-            handLines.push(lines);
-            handPoints.push(points);
-        }
+const renderer = new THREE.WebGLRenderer({
+  canvas: threeCanvas,
+  alpha: true,
+  antialias: false,      // FPS boost
+  powerPreference: 'high-performance'
+});
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setClearColor(0x000000, 0);
 
-        // --- 3. MEDIAPIPE HANDS KURULUMU ---
-        const videoElement = document.getElementById('video-feed');
-        const statusElement = document.getElementById('status');
+window.addEventListener('resize', () => {
+  cam3.aspect = innerWidth / innerHeight;
+  cam3.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
 
-        function onResults(results) {
-            statusElement.innerText = "Eller izleniyor...";
+// ══════════════════════════════════════════════════
+// 2. RENK PALETLERİ
+// ══════════════════════════════════════════════════
+const PALETTES = {
+  arcane:   {r:.69, g:.37, b:1.0,  hex:0xb060ff, name:'Arcane'},
+  electric: {r:.25, g:.75, b:1.0,  hex:0x40d0ff, name:'Electric'},
+  fire:     {r:1.0, g:.37, b:.07,  hex:0xff5f1f, name:'Fire'},
+  ice:      {r:.50, g:.94, b:1.0,  hex:0x80f0ff, name:'Ice'},
+  divine:   {r:1.0, g:.81, b:.37,  hex:0xffd060, name:'Divine'},
+};
+let currentPalette = 'arcane';
 
-            // Tüm elleri gizle (ekranda el yoksa görünmesin)
-            handLines.forEach(l => l.visible = false);
-            handPoints.forEach(p => p.visible = false);
+// ══════════════════════════════════════════════════
+// 3. GPU PARTİKÜL SİSTEMİ — BufferGeometry + Points
+// ══════════════════════════════════════════════════
+const MAX_P = 25000;
 
-            if (results.multiHandLandmarks) {
-                // Algılanan her el için Three.js objelerini güncelle
-                results.multiHandLandmarks.forEach((landmarks, index) => {
-                    if (index >= 2) return; // Sadece max 2 eli destekle
+// CPU tarafı — typed arrays ile süper hız
+const px   = new Float32Array(MAX_P);
+const py   = new Float32Array(MAX_P);
+const pz   = new Float32Array(MAX_P);
+const pvx  = new Float32Array(MAX_P);
+const pvy  = new Float32Array(MAX_P);
+const pvz  = new Float32Array(MAX_P);
+const plife= new Float32Array(MAX_P);
+const psize= new Float32Array(MAX_P);
+const ptype= new Uint8Array(MAX_P);   // 0:aura 1:orb 2:spark 3:wisp 4:ember 5:snow
+let pIdx = 0;
 
-                    const lines = handLines[index];
-                    const points = handPoints[index];
-                    
-                    lines.visible = true;
-                    points.visible = true;
+// GPU geometri
+const geo = new THREE.BufferGeometry();
+const gPos = new Float32Array(MAX_P * 3);
+const gAlpha = new Float32Array(MAX_P);    // custom alpha per particle
 
-                    const linePositions = lines.geometry.attributes.position.array;
-                    const pointPositions = points.geometry.attributes.position.array;
+geo.setAttribute('position',  new THREE.BufferAttribute(gPos,   3));
+geo.setAttribute('alpha',     new THREE.BufferAttribute(gAlpha, 1));
+geo.setDrawRange(0, MAX_P);
 
-                    let lineIdx = 0;
-                    let pointIdx = 0;
+// Glow doku (Canvas 2D ile)
+function makeGlowTex(radius=32){
+  const c = document.createElement('canvas');
+  c.width = c.height = radius*2;
+  const cx2 = c.getContext('2d');
+  const g = cx2.createRadialGradient(radius,radius,0,radius,radius,radius);
+  g.addColorStop(0,   'rgba(255,255,255,1)');
+  g.addColorStop(0.25,'rgba(255,255,255,.8)');
+  g.addColorStop(0.6, 'rgba(255,255,255,.2)');
+  g.addColorStop(1,   'rgba(0,0,0,0)');
+  cx2.fillStyle = g;
+  cx2.fillRect(0,0,radius*2,radius*2);
+  return new THREE.CanvasTexture(c);
+}
 
-                    // Koordinat Dönüştürücü: MediaPipe(0-1) => Three.js(-8 to 8)
-                    const mapLandmark = (lm) => ({
-                        x: (1 - lm.x - 0.5) * 12,
-                        y: -(lm.y - 0.5) * 8,
-                        z: lm.z * -10
-                    });
+// Vertex Shader — her partiküle boyut ve alpha ver
+const vShader = `
+  attribute float alpha;
+  varying float vAlpha;
+  void main(){
+    vAlpha = alpha;
+    vec4 mv = modelViewMatrix * vec4(position,1.0);
+    gl_PointSize = max(2.0, 14.0 * (300.0 / -mv.z));
+    gl_Position = projectionMatrix * mv;
+  }
+`;
+const fShader = `
+  uniform sampler2D uTex;
+  uniform vec3 uColor;
+  varying float vAlpha;
+  void main(){
+    vec4 t = texture2D(uTex, gl_PointCoord);
+    if(t.a < 0.01) discard;
+    gl_FragColor = vec4(uColor, t.a * vAlpha);
+  }
+`;
 
-                    // Çizgileri oluştur (Kemikler)
-                    for (const [start, end] of connections) {
-                        const p1 = mapLandmark(landmarks[start]);
-                        const p2 = mapLandmark(landmarks[end]);
+const mat = new THREE.ShaderMaterial({
+  uniforms:{
+    uTex:  {value: makeGlowTex()},
+    uColor:{value: new THREE.Color(0xb060ff)}
+  },
+  vertexShader:   vShader,
+  fragmentShader: fShader,
+  transparent: true,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false,
+});
 
-                        linePositions[lineIdx++] = p1.x; linePositions[lineIdx++] = p1.y; linePositions[lineIdx++] = p1.z;
-                        linePositions[lineIdx++] = p2.x; linePositions[lineIdx++] = p2.y; linePositions[lineIdx++] = p2.z;
-                    }
+const particleSystem = new THREE.Points(geo, mat);
+scene.add(particleSystem);
 
-                    // Noktaları oluştur (Eklemler)
-                    for (let i = 0; i < 21; i++) {
-                        const p = mapLandmark(landmarks[i]);
-                        pointPositions[pointIdx++] = p.x;
-                        pointPositions[pointIdx++] = p.y;
-                        pointPositions[pointIdx++] = p.z;
-                    }
+// ══════════════════════════════════════════════════
+// 4. EL İSKELETİ — Three.js LineSegments
+// ══════════════════════════════════════════════════
+const CONNECTIONS = [
+  [0,1],[1,2],[2,3],[3,4],
+  [5,6],[6,7],[7,8],
+  [9,10],[10,11],[11,12],
+  [13,14],[14,15],[15,16],
+  [17,18],[18,19],[19,20],
+  [0,5],[5,9],[9,13],[13,17],[0,17]
+];
 
-                    lines.geometry.attributes.position.needsUpdate = true;
-                    points.geometry.attributes.position.needsUpdate = true;
-                });
-            }
-        }
+function makeHandMesh(){
+  const linGeo = new THREE.BufferGeometry();
+  linGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(CONNECTIONS.length*2*3), 3));
+  const linMat = new THREE.LineBasicMaterial({
+    color:0xb060ff, transparent:true, opacity:.55,
+    blending:THREE.AdditiveBlending, depthWrite:false
+  });
+  const lines = new THREE.LineSegments(linGeo, linMat);
 
-        const hands = new Hands({locateFile: (file) => {
-            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
-        }});
-        
-        hands.setOptions({
-            maxNumHands: 2,
-            modelComplexity: 1,
-            minDetectionConfidence: 0.5,
-            minTrackingConfidence: 0.5
-        });
-        
-        hands.onResults(onResults);
+  const ptGeo = new THREE.BufferGeometry();
+  ptGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(21*3), 3));
+  const ptMat = new THREE.PointsMaterial({
+    color:0xffffff, size:8, map:makeGlowTex(16),
+    transparent:true, opacity:.9,
+    blending:THREE.AdditiveBlending, depthWrite:false
+  });
+  const pts = new THREE.Points(ptGeo, ptMat);
 
-        // Kamerayı başlat
-        const cameraUtils = new Camera(videoElement, {
-            onFrame: async () => {
-                await hands.send({image: videoElement});
-            },
-            width: 640,
-            height: 480
-        });
-        
-        cameraUtils.start().then(() => {
-            statusElement.innerText = "Kamera aktif. Ellerinizi gösterin.";
-        }).catch((err) => {
-            statusElement.innerText = "Kamera hatası: " + err;
-        });
+  scene.add(lines, pts);
+  lines.visible = pts.visible = false;
+  return {lines, pts};
+}
 
-        // --- 4. RENDER DÖNGÜSÜ ---
-        function animate() {
-            requestAnimationFrame(animate);
-            // Sahneyi yavaşça kendi etrafında döndürerek 3D hissini arttırabiliriz (İsteğe bağlı)
-            // scene.rotation.y = Math.sin(Date.now() * 0.001) * 0.1;
-            renderer.render(scene, camera);
-        }
-        animate();
+const handMeshes = [makeHandMesh(), makeHandMesh()];
 
-    </script>
+// ══════════════════════════════════════════════════
+// 5. YARDIMCI: Koordinat dönüşümü
+// ══════════════════════════════════════════════════
+function lm2world(lm){
+  const vFOV = THREE.MathUtils.degToRad(cam3.fov);
+  const H = 2 * Math.tan(vFOV/2) * cam3.position.z;
+  const W = H * cam3.aspect;
+  return {
+    x: (0.5 - lm.x) * W,
+    y: (0.5 - lm.y) * H,
+    z: lm.z * -300
+  };
+}
+
+// ══════════════════════════════════════════════════
+// 6. PARTİKÜL FİZİK SİSTEMİ
+// ══════════════════════════════════════════════════
+
+// Curl noise (hızlı)
+function curlAngle(x, y, t){
+  return Math.sin(x*.005+t)*Math.cos(y*.005+t*.7)*2.5
+       + Math.sin((x+y)*.004-t*.3)*1.2;
+}
+
+function spawn(wx, wy, wz, count, type){
+  for(let n=0;n<count;n++){
+    const i = pIdx;
+    px[i]=wx+(Math.random()-.5)*8;
+    py[i]=wy+(Math.random()-.5)*8;
+    pz[i]=wz+(Math.random()-.5)*20;
+    ptype[i]=type;
+
+    let spd, ang;
+    switch(type){
+      case 0: // aura — yavaş, dağılan
+        spd=Math.random()*2.5+.5;
+        ang=Math.random()*Math.PI*2;
+        pvx[i]=Math.cos(ang)*spd; pvy[i]=Math.sin(ang)*spd; pvz[i]=(Math.random()-.5)*2;
+        plife[i]=1; psize[i]=Math.random()*.8+.4;
+        break;
+      case 1: // orb — merkezden dışa
+        spd=Math.random()*4+2;
+        ang=Math.random()*Math.PI*2;
+        pvx[i]=Math.cos(ang)*spd; pvy[i]=Math.sin(ang)*spd; pvz[i]=(Math.random()-.5)*spd*.5;
+        plife[i]=1; psize[i]=Math.random()*.5+.3;
+        break;
+      case 2: // spark — hızlı, çakıl
+        spd=Math.random()*12+6;
+        ang=Math.random()*Math.PI*2;
+        pvx[i]=Math.cos(ang)*spd; pvy[i]=Math.sin(ang)*spd; pvz[i]=(Math.random()-.5)*spd;
+        plife[i]=1; psize[i]=Math.random()*.3+.15;
+        break;
+      case 3: // wisp — yüzen
+        pvx[i]=(Math.random()-.5)*1.5; pvy[i]=Math.random()*1+.5; pvz[i]=(Math.random()-.5)*1;
+        plife[i]=1; psize[i]=Math.random()*.6+.3;
+        break;
+      case 4: // ember — yukarı
+        pvx[i]=(Math.random()-.5)*4; pvy[i]=-(Math.random()*5+3); pvz[i]=(Math.random()-.5)*2;
+        plife[i]=1; psize[i]=Math.random()*.4+.2;
+        break;
+      case 5: // snow — aşağı
+        pvx[i]=(Math.random()-.5)*.8; pvy[i]=Math.random()*1.5+.5; pvz[i]=(Math.random()-.5)*.5;
+        plife[i]=1; psize[i]=Math.random()*.5+.25;
+        break;
+    }
+    pIdx=(pIdx+1)%MAX_P;
+  }
+}
+
+let simTime=0;
+function simulate(){
+  simTime+=.016;
+  const col = PALETTES[currentPalette];
+  let alive=0;
+
+  for(let i=0;i<MAX_P;i++){
+    if(plife[i]<=0){
+      gPos[i*3]= 99999; gPos[i*3+1]=99999; gPos[i*3+2]=99999;
+      gAlpha[i]=0;
+      continue;
+    }
+
+    // Curl noise kuvveti
+    const ca = curlAngle(px[i],py[i],simTime);
+    let fx=0,fy=0;
+    const t=ptype[i];
+    const f = t===2?.04 : t===3?.18 : .08;
+    fx=Math.cos(ca)*f; fy=Math.sin(ca)*f;
+    pvx[i]+=fx; pvy[i]+=fy;
+
+    // Tip fiziği
+    if(t===4){ pvy[i]-=.12; }       // ember yukarı
+    else if(t===5){ pvy[i]+=.06; }  // snow aşağı
+    else if(t===2){ pvy[i]+=.05; }  // spark yerçekimi
+    else if(t===0){ pvy[i]-=.01; }  // aura hafif yukarı
+
+    pvx[i]*=.97; pvy[i]*=.97; pvz[i]*=.97;
+    px[i]+=pvx[i]; py[i]+=pvy[i]; pz[i]+=pvz[i];
+
+    // Yaşam azalması
+    const decay = t===2?.022 : t===4?.018 : .010;
+    plife[i]-=decay;
+
+    gPos[i*3]=px[i]; gPos[i*3+1]=py[i]; gPos[i*3+2]=pz[i];
+    gAlpha[i]=Math.max(0, plife[i]);
+    if(plife[i]>0) alive++;
+  }
+
+  geo.attributes.position.needsUpdate=true;
+  geo.attributes.alpha.needsUpdate=true;
+  mat.uniforms.uColor.value.setRGB(col.r,col.g,col.b);
+
+  return alive;
+}
+
+// ══════════════════════════════════════════════════
+// 7. JEST ALGILAMA
+// ══════════════════════════════════════════════════
+function detectGesture(lms){
+  const tips=[4,8,12,16,20].map(i=>lms[i]);
+  const pips=[3,6,10,14,18].map(i=>lms[i]);
+  const up=[];
+  for(let i=1;i<5;i++) up[i]=tips[i].y < pips[i].y;
+  const cnt=up.slice(1).filter(Boolean).length;
+  if(cnt===4) return 'OPEN';
+  if(cnt===0) return 'FIST';
+  if(up[1]&&up[2]&&!up[3]&&!up[4]) return 'PEACE';
+  if(up[1]&&!up[2]&&!up[3]&&!up[4]) return 'POINT';
+  if(!up[1]&&!up[2]&&!up[3]&&up[4]) return 'PINKY';
+  if(up[1]&&!up[2]&&!up[3]&&up[4]) return 'ROCK';
+  return 'PARTIAL';
+}
+
+const GFXMAP = {
+  OPEN:  {types:[0,3],     count:8,  gi:'g-open'},
+  FIST:  {types:[1,4],     count:10, gi:'g-fist'},
+  PEACE: {types:[2],       count:12, gi:'g-peace'},
+  POINT: {types:[2],       count:14, gi:'g-point'},
+  PINKY: {types:[3,5],     count:6,  gi:'g-pinky'},
+  ROCK:  {types:[1,2,4],   count:16, gi:'g-rock'},
+  PARTIAL:{types:[0],      count:2,  gi:null}
+};
+
+// ══════════════════════════════════════════════════
+// 8. EL İSKELETİ GÜNCELLEME
+// ══════════════════════════════════════════════════
+function updateHandMesh(mesh, lms){
+  const {lines,pts} = mesh;
+  lines.visible=pts.visible=true;
+
+  const lp  = lines.geometry.attributes.position.array;
+  const pp  = pts.geometry.attributes.position.array;
+  let li=0,pi=0;
+
+  for(const [a,b] of CONNECTIONS){
+    const wa=lm2world(lms[a]), wb=lm2world(lms[b]);
+    lp[li++]=wa.x;lp[li++]=wa.y;lp[li++]=wa.z;
+    lp[li++]=wb.x;lp[li++]=wb.y;lp[li++]=wb.z;
+  }
+  for(let k=0;k<21;k++){
+    const w=lm2world(lms[k]);
+    pp[pi++]=w.x;pp[pi++]=w.y;pp[pi++]=w.z;
+  }
+  lines.geometry.attributes.position.needsUpdate=true;
+  pts.geometry.attributes.position.needsUpdate=true;
+
+  const col = PALETTES[currentPalette];
+  lines.material.color.setHex(col.hex);
+  pts.material.color.setHex(col.hex);
+}
+
+function hideHandMeshes(){
+  handMeshes.forEach(m=>{m.lines.visible=false;m.pts.visible=false;});
+}
+
+// ══════════════════════════════════════════════════
+// 9. MEDİAPIPE
+// ══════════════════════════════════════════════════
+const video = document.getElementById('video');
+let hands=null, activeLms=[], cameraActive=false;
+
+async function initHands(){
+  try{
+    hands=new Hands({locateFile:f=>`https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`});
+    hands.setOptions({maxNumHands:2,modelComplexity:0,minDetectionConfidence:.55,minTrackingConfidence:.5});
+    hands.onResults(r=>{ activeLms = r.multiHandLandmarks||[]; });
+    setStatus('✓ Hazır — Kamera aç veya Demo');
+  }catch(e){ setStatus('⚠ MediaPipe yüklenemedi, Demo kullan'); }
+}
+
+async function startCamera(){
+  try{
+    const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:640},height:{ideal:480}}});
+    video.srcObject=s; video.style.display='block';
+    setStatus('🎥 Kamera aktif');
+    document.getElementById('cam-btn').textContent='✕ Kapat';
+    document.getElementById('cam-btn').classList.add('active');
+    cameraActive=true; demoMode=false;
+    document.getElementById('demo-btn').classList.remove('active');
+
+    if(hands){
+      const c=new Camera(video,{onFrame:async()=>{ if(cameraActive) await hands.send({image:video}); },width:640,height:480});
+      c.start();
+    }
+  }catch(e){ setStatus('✗ Kamera izni reddedildi'); }
+}
+
+function stopCamera(){
+  if(video.srcObject) video.srcObject.getTracks().forEach(t=>t.stop());
+  video.style.display='none'; cameraActive=false; activeLms=[];
+  document.getElementById('cam-btn').textContent='📷 Kamera';
+  document.getElementById('cam-btn').classList.remove('active');
+  setStatus('Kamera kapatıldı');
+}
+
+// ══════════════════════════════════════════════════
+// 10. DEMO MODU
+// ══════════════════════════════════════════════════
+let demoMode=false, demoT=0;
+
+function makeDemoLms(cx,cy){
+  return Array.from({length:21},(_,i)=>({
+    x:1-(cx+Math.sin(i*.9+demoT)*80)/innerWidth,
+    y:(cy+Math.cos(i*.9+demoT*.7)*60)/innerHeight,
+    z:0
+  }));
+}
+
+function tickDemo(){
+  if(!demoMode) return;
+  demoT+=.018;
+  activeLms=[
+    makeDemoLms(innerWidth*.28+Math.sin(demoT)*130, innerHeight*.42+Math.cos(demoT*.65)*100),
+    makeDemoLms(innerWidth*.72+Math.sin(demoT+Math.PI)*130, innerHeight*.58+Math.cos(demoT*.65+Math.PI)*100)
+  ];
+}
+
+// ══════════════════════════════════════════════════
+// 11. GESTURE FLASH UI
+// ══════════════════════════════════════════════════
+const GESTURE_LABELS = {OPEN:'AURA',FIST:'ORB',PEACE:'LIGHTNING',POINT:'LASER',PINKY:'WISP',ROCK:'CHAOS!'};
+let lastGesture='', flashTimer=0;
+const flashEl = document.getElementById('gesture-flash');
+let prevGuideActive=null;
+
+function flashGesture(g){
+  if(g===lastGesture||g==='PARTIAL') return;
+  lastGesture=g; clearTimeout(flashTimer);
+  flashEl.textContent = GESTURE_LABELS[g]||'';
+  flashEl.style.opacity='1';
+  flashTimer=setTimeout(()=>flashEl.style.opacity='0',600);
+
+  if(prevGuideActive) document.getElementById(prevGuideActive)?.classList.remove('active');
+  const gfx=GFXMAP[g];
+  if(gfx?.gi){ document.getElementById(gfx.gi)?.classList.add('active'); prevGuideActive=gfx.gi; }
+}
+
+// ══════════════════════════════════════════════════
+// 12. STATS
+// ══════════════════════════════════════════════════
+let fc=0,lastFt=Date.now(),fpsV=60;
+function tickStats(alive){
+  fc++; const now=Date.now();
+  if(now-lastFt>=1000){ fpsV=fc; fc=0; lastFt=now; }
+  document.getElementById('p-val').textContent=alive.toLocaleString();
+  document.getElementById('h-val').textContent=activeLms.length;
+  const fe=document.getElementById('fps-val');
+  fe.textContent=fpsV;
+  fe.style.color=fpsV>40?'#0f0':fpsV>20?'#ff0':'#f00';
+}
+
+function setStatus(t){ document.getElementById('status-line').textContent=t; }
+
+// ══════════════════════════════════════════════════
+// 13. ANA DÖNGÜ
+// ══════════════════════════════════════════════════
+function loop(){
+  requestAnimationFrame(loop);
+
+  tickDemo();
+
+  // El işleme
+  hideHandMeshes();
+  activeLms.forEach((lms,idx)=>{
+    if(idx>=2) return;
+    if(lms.length<21) return;
+
+    updateHandMesh(handMeshes[idx], lms);
+    const gesture = detectGesture(lms);
+    flashGesture(gesture);
+    const gfx = GFXMAP[gesture]||GFXMAP.PARTIAL;
+
+    // Avuç merkezi
+    let px2=0,py2=0,pz2=0;
+    [0,5,9,13,17].forEach(k=>{
+      const w=lm2world(lms[k]);
+      px2+=w.x; py2+=w.y; pz2+=w.z;
+    });
+    px2/=5;py2/=5;pz2/=5;
+
+    // Her jestte tip bazlı spawn
+    if(gesture==='PEACE'){
+      const t1=lm2world(lms[8]), t2=lm2world(lms[12]);
+      spawn(t1.x,t1.y,t1.z,6,2);
+      spawn(t2.x,t2.y,t2.z,6,2);
+    } else if(gesture==='POINT'){
+      const t=lm2world(lms[8]);
+      spawn(t.x,t.y,t.z,8,2);
+    } else if(gesture==='ROCK'){
+      const t1=lm2world(lms[8]), t2=lm2world(lms[20]);
+      spawn(t1.x,t1.y,t1.z,5,2); spawn(t2.x,t2.y,t2.z,5,2);
+      spawn(px2,py2,pz2,6,1);
+    } else {
+      gfx.types.forEach(tp=> spawn(px2,py2,pz2, Math.ceil(gfx.count/gfx.types.length), tp));
+    }
+
+    // Parmak uçlarından sürekli iz
+    [4,8,12,16,20].forEach(ti=>{
+      const w=lm2world(lms[ti]);
+      spawn(w.x,w.y,w.z,1,0);
+    });
+  });
+
+  // Fizik + render
+  const alive = simulate();
+  tickStats(alive);
+  renderer.render(scene, cam3);
+}
+
+// ══════════════════════════════════════════════════
+// 14. EVENT LISTENERS
+// ══════════════════════════════════════════════════
+document.getElementById('cam-btn').addEventListener('click',()=>{
+  if(cameraActive) stopCamera(); else startCamera();
+});
+
+document.getElementById('demo-btn').addEventListener('click',()=>{
+  if(cameraActive) stopCamera();
+  demoMode=!demoMode;
+  const btn=document.getElementById('demo-btn');
+  if(demoMode){
+    btn.classList.add('active'); btn.textContent='✕ Demo Kapat';
+    setStatus('🎭 Demo aktif');
+  } else {
+    btn.classList.remove('active'); btn.textContent='🎭 Demo';
+    activeLms=[]; setStatus('Demo durduruldu');
+  }
+});
+
+document.querySelectorAll('.orb').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.orb').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    currentPalette=b.dataset.c;
+    setStatus(`✦ ${PALETTES[currentPalette].name} modu`);
+  });
+});
+
+// ══════════════════════════════════════════════════
+// 15. BAŞLAT
+// ══════════════════════════════════════════════════
+initHands();
+loop();
+</script>
 </body>
 </html>
